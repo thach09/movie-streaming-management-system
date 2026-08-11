@@ -5,9 +5,11 @@ public class Category {
     private String id;
     private String name;
     private String description;
+    private boolean isActive;
 
     // 2. Constructor không tham số (Mặc định)
     public Category() {
+        this.isActive = true;
     }
 
     // 3. Constructor đầy đủ tham số (Giúp khởi tạo đối tượng nhanh gọn)
@@ -15,6 +17,7 @@ public class Category {
         this.id = id;
         this.name = name;
         this.description = description;
+        this.isActive = true;
     }
 
     // 4. Getters & Setters
@@ -40,6 +43,14 @@ public class Category {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        this.isActive = active;
     }
 
     // 5. Override hàm toString() để in thông tin Category ra màn hình dễ đọc
