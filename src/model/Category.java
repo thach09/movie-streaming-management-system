@@ -26,6 +26,9 @@ public class Category {
     }
 
     public void setId(String id) {
+        if (id == null || id.trim().isEmpty()) {
+            throw new IllegalArgumentException("Mã danh mục (ID) không được để trống!");
+        }
         this.id = id;
     }
 
@@ -34,6 +37,9 @@ public class Category {
     }
 
     public void setName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Tên danh mục không được để trống!");
+        }
         this.name = name;
     }
 
@@ -60,6 +66,7 @@ public class Category {
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
+                ", isActive=" + isActive +
                 '}';
     }
 }

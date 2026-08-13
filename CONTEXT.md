@@ -79,3 +79,26 @@ src/
 4. **Chất lượng Code chuẩn Đại học:** Code sạch, tối ưu, đặt tên chuẩn Java Convention, có comment giải thích rõ ràng để phục vụ việc bảo vệ / review code.
 5. **Xác nhận & Kiểm thử:** Luôn hỗ trợ hướng dẫn kiểm thử (`javac`) sau mỗi bước nhỏ.
 
+---
+
+## 7. TRẠNG THÁI HIỆN TẠI VÀ BƯỚC TIẾP THEO (SESSION PROGRESS & NEXT STEPS)
+*Cập nhật lần cuối: 11/08/2026*
+
+### ✅ Công việc đã hoàn thành hôm nay (11/08/2026):
+1. **Cấu trúc Dự án & File Context:** Đã tạo repo Git, cấu trúc MVC trong `src/` và khởi tạo file `CONTEXT.md`.
+2. **Category Model (Soft Delete):** Đã bổ sung trường `private boolean isActive;` vào `Category.java`, khởi tạo `isActive = true;` trong các Constructors và tạo Getter/Setter (`isActive()`, `setActive()`). Biên dịch thành công 100%.
+3. **Thống nhất Kiến trúc Validation 2 Tầng:** 
+   - *Tầng Model (`Category.java`):* Validate chống null/empty để bảo vệ tính toàn vẹn dữ liệu nội tại (Encapsulation).
+   - *Tầng Utility (`InputValidator.java`):* File tiện ích riêng chuyên đọc Console input an toàn, chống trôi dòng `Scanner` và bắt người dùng nhập lại khi gõ sai.
+
+### 🛑 Điểm dừng hiện tại (Current Stop Point):
+- Đang ở file [Category.java](file:///d:/GitHub/movie-streaming-management-system/src/model/Category.java).
+- Đã chuẩn bị sẵn sàng tư duy để viết Model Validation trong các Setters (`setId`, `setName`).
+
+### ⏭️ Việc cần làm ngay khi mở lại dự án (Next Immediate Steps):
+1. **Nhiệm vụ 1:** Thêm `isActive` vào hàm `toString()` của `Category.java`.
+2. **Nhiệm vụ 2:** Viết Model-level Validation trong `setId()` và `setName()` của `Category.java` (Throw `IllegalArgumentException` nếu `null` hoặc `trim().isEmpty()`).
+3. **Nhiệm vụ 3:** Tạo Custom Exception `ValidationException.java` trong thư mục `src/utils/`.
+4. **Nhiệm vụ 4:** Tạo file tiện ích riêng `InputValidator.java` trong `src/utils/` để bắt lỗi nhập từ bàn phím.
+
+
