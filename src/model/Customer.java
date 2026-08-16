@@ -22,9 +22,9 @@ public class Customer extends User {
     public Customer (String id, String username, String password, String fullName, String email, 
     List<String> watchlist, List<String> favoriteList, List<String> watchHistory) throws ValidationException {
         super(id, username, password, fullName, email, "CUSTOMER");
-        this.watchlist = new ArrayList<>();
-        this.favoriteList = new ArrayList<>();
-        this.watchHistory = new ArrayList<>();
+        this.watchlist = (watchlist != null) ? watchlist : new ArrayList<>();
+        this.favoriteList = (favoriteList != null) ? favoriteList : new ArrayList<>();
+        this.watchHistory = (watchHistory != null) ? watchHistory : new ArrayList<>();
     }
 
     // === Getters & Setters ===
