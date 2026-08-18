@@ -47,7 +47,7 @@ public class UserRepository {
                     Customer cus = (Customer) user; // Ép kiểu từ User sang Customer
                     // Nối 3 danh sách phim vào cuối chuỗi
                     line.append(DELIMITER).append(joinList(cus.getWatchlist()))
-                        .append(DELIMITER).append(joinList(cus.getFavoriteList()))
+                        .append(DELIMITER).append(joinList(cus.getFavouriteList()))
                         .append(DELIMITER).append(joinList(cus.getWatchHistory()));
                 }
 
@@ -108,10 +108,10 @@ public class UserRepository {
                         } else if (role.equals("CUSTOMER") && parts.length >= 10) {
                             // Customer sẽ có 10 cột (3 cột danh sách)
                             List<String> watchlist = parseList(parts[7]);
-                            List<String> favoritelist = parseList(parts[8]);
+                            List<String> favouritelist = parseList(parts[8]);
                             List<String> watchHistorylist = parseList(parts[9]);
 
-                            user = new Customer(id, username, password, fullName, email, watchlist, favoritelist, watchHistorylist );
+                            user = new Customer(id, username, password, fullName, email, watchlist, favouritelist, watchHistorylist );
                     }
 
                     // Khởi tạo thành công sẽ thêm vào danh sách

@@ -6,7 +6,7 @@ import java.util.List;
 
 public class Customer extends User {
     private List<String> watchlist;
-    private List<String> favoriteList;
+    private List<String> favouriteList;
     private List<String> watchHistory;
 
     // Constructor mặc định
@@ -14,16 +14,16 @@ public class Customer extends User {
         super();
         this.role = "CUSTOMER";
         this.watchlist = new ArrayList<>();
-        this.favoriteList = new ArrayList<>();
+        this.favouriteList = new ArrayList<>();
         this.watchHistory = new ArrayList<>();
     }
 
     // Constructor đầy đủ tham số
     public Customer (String id, String username, String password, String fullName, String email, 
-    List<String> watchlist, List<String> favoriteList, List<String> watchHistory) throws ValidationException {
+    List<String> watchlist, List<String> favouriteList, List<String> watchHistory) throws ValidationException {
         super(id, username, password, fullName, email, "CUSTOMER");
         this.watchlist = (watchlist != null) ? watchlist : new ArrayList<>();
-        this.favoriteList = (favoriteList != null) ? favoriteList : new ArrayList<>();
+        this.favouriteList = (favouriteList != null) ? favouriteList : new ArrayList<>();
         this.watchHistory = (watchHistory != null) ? watchHistory : new ArrayList<>();
     }
 
@@ -35,11 +35,11 @@ public class Customer extends User {
      public void setWatchlist(List<String> watchlist) {
         this.watchlist = (watchlist != null) ? watchlist : new ArrayList<>();
     }
-    public List<String> getFavoriteList() {
-        return favoriteList;
+    public List<String> getFavouriteList() {
+        return favouriteList;
     }
-    public void setFavoriteList(List<String> favoriteList) {
-        this.favoriteList = (favoriteList != null) ? favoriteList : new ArrayList<>();
+    public void setFavouriteList(List<String> favouriteList) {
+        this.favouriteList = (favouriteList != null) ? favouriteList : new ArrayList<>();
     }
     public List<String> getWatchHistory() {
         return watchHistory;
@@ -50,7 +50,7 @@ public class Customer extends User {
     @Override
     public String toString() {
         return String.format("Customer [%s, Watchlist=%d movies, Favorites=%d movies, History=%d movies]",
-                super.toString(), watchlist.size(), favoriteList.size(), watchHistory.size());
+                super.toString(), watchlist.size(), favouriteList.size(), watchHistory.size());
     }
    
 }
