@@ -40,7 +40,7 @@ public class CategoryRepository {
     }
 
     // Đọc dữ liệu từ file lên RAM
-    public List<Category>  loadALL() {
+    public List<Category>  loadAll() {
         List<Category> categoriesList = new ArrayList<>();
         File file = new File(FILE_PATH);
         if (!file.exists()) { 
