@@ -10,7 +10,11 @@ public class Admin extends User {
 
     public Admin() {
         super();
-        this.role = "ADMIN"; //Thiết lập role mặc định
+        try {
+            this.setRole("ADMIN"); // Thiết lập role thông qua setter để đồng nhất logic
+        } catch (ValidationException e) {
+            // Không bao giờ xảy ra vì "ADMIN" luôn hợp lệ
+        }
     }
 
     // Constructor đầy đủ tham số 
@@ -20,8 +24,8 @@ public class Admin extends User {
         super(id, username, password, fullName, email, "ADMIN");
     }
 
-        @Override
+    @Override
     public String toString() {
-        return "ADMIN " + super.toString();
+        return super.toString();
     }
 }
