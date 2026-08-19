@@ -1,5 +1,6 @@
 package model;
 import utils.ValidationException;
+import java.util.Objects;
 
 public abstract class User {
 
@@ -38,6 +39,7 @@ public abstract class User {
         if (id == null || id.trim().isEmpty()) {
             throw new ValidationException("ID không được để trống!");
         }
+        if (id.contains("|")) throw new ValidationException("ID không được chứa ký tự '|'");
         this.id = id.trim();
     }
 
@@ -49,6 +51,7 @@ public abstract class User {
         if (username == null || username.trim().isEmpty()) {
             throw new ValidationException("Tên đăng nhập không được để trống!");
         }
+        if (username.contains("|")) throw new ValidationException("Tên đăng nhập không được chứa ký tự '|'");
         this.username = username.trim();
     }
     public String getPassword() {
@@ -61,6 +64,7 @@ public abstract class User {
         if (password.trim().length() < 6) {
             throw new ValidationException("Mật khẩu phải có ít nhất 6 ký tự!");
         }
+        if (password.contains("|")) throw new ValidationException("Mật khẩu không được chứa ký tự '|'");
         this.password = password.trim();
     }
     public String getFullName() {
@@ -70,6 +74,7 @@ public abstract class User {
         if (fullName == null || fullName.trim().isEmpty()) {
             throw new ValidationException("Họ và tên không được để trống!");
         }
+        if (fullName.contains("|")) throw new ValidationException("Họ và tên không được chứa ký tự '|'");
         this.fullName = fullName.trim();
     }
     public String getEmail() {
@@ -80,6 +85,7 @@ public abstract class User {
             throw new ValidationException("Email không được để trống!");
         }
         String cleanEmail = email.trim();
+        if (cleanEmail.contains("|")) throw new ValidationException("Email không được chứa ký tự '|'");
         if (!cleanEmail.contains("@") || !cleanEmail.contains(".")) {
             throw new ValidationException("Email không đúng định dạng (phải chứa '@' và domain)!");
         }
@@ -105,11 +111,22 @@ public abstract class User {
         this.isActive = isActive;
     }
 
-        @Override
+    @Override
     public String toString() {
         return String.format("User [ID=%s, Username=%s, FullName=%s, Email=%s, Role=%s, Status=%s]",
                 id, username, fullName, email, role, (isActive ? "ACTIVE" : "INACTIVE"));
     }
 
-    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return Objects.equals(id, user.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
 }
