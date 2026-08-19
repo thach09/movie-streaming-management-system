@@ -9,8 +9,12 @@ public class Main {
         
         // 1. Tạo thử 2 danh mục trên RAM
         List<Category> list = new ArrayList<>();
-        list.add(new Category("C01", "Hanh Dong", "Phim co nhieu canh chay no"));
-        list.add(new Category("C02", "Hai Huoc", "Phim xem de cuoi"));
+        try {
+            list.add(new Category("C01", "Hanh Dong", "Phim co nhieu canh chay no"));
+            list.add(new Category("C02", "Hai Huoc", "Phim xem de cuoi"));
+        } catch (Exception e) {
+            System.err.println(e.getMessage());
+        }
         
         // 2. Lưu danh sách xuống ổ cứng
         boolean isSaved = repo.saveAll(list);
