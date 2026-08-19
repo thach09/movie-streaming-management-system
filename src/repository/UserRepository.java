@@ -54,13 +54,13 @@ public class UserRepository {
                 // Ghi chuỗi xuống file
                 bw.write(line.toString());
                 bw.newLine(); 
-                } 
-                return true;
-            } catch (IOException e) {
-                System.err.println("Lỗi ghi file: " + e.getMessage());
-                return false;
-            }  
+            } 
+            return true;
+        } catch (IOException e) {
+            System.err.println("Lỗi ghi file: " + e.getMessage());
+            return false;
         }
+    }
 
     // Hàm phụ trợ: biến chuỗi M01, M02 thành List<String>
     private List<String> parseList(String data) {
