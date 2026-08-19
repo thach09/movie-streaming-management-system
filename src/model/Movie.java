@@ -1,10 +1,13 @@
 package model;
 
+import utils.ValidationException;
+import java.util.Objects;
+
 public class Movie {
     // Encapsulation
     private String id;
     private String title;
-    private String category;
+    private String categoryId;
     private String director;
     private String actors;
     private int releaseYear;
@@ -22,10 +25,10 @@ public class Movie {
     }
 
     // Constructor đầy đủ tham số
-    public Movie (String id, String title, String category, String director, String actors, int releaseYear, double rating, long views, long favouritesCount, boolean isActive) {
+    public Movie (String id, String title, String categoryId, String director, String actors, int releaseYear, double rating, long views, long favouritesCount, boolean isActive) throws ValidationException {
         setId(id);
         setTitle(title);
-        setCategory(category);
+        setCategoryId(categoryId);
         setDirector(director);
         setActors(actors);
         setReleaseYear(releaseYear);
@@ -40,10 +43,11 @@ public class Movie {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(String id) throws ValidationException {
         if (id == null || id.trim().isEmpty()) {
-            throw new IllegalArgumentException("Mã phim không được để trống!");
+            throw new ValidationException("Mã phim không được để trống!");
         }
+        if (id.contains("|")) throw new ValidationException("Dữ liệu không được chứa ký tự '|'");
         this.id = id.trim();
     }
 
@@ -51,31 +55,34 @@ public class Movie {
         return title;
     }
 
-    public void setTitle(String title) {
+    public void setTitle(String title) throws ValidationException {
         if (title == null || title.trim().isEmpty()) {
-            throw new IllegalArgumentException("Tên phim không được để trống!");
+            throw new ValidationException("Tên phim không được để trống!");
         }
+        if (title.contains("|")) throw new ValidationException("Dữ liệu không được chứa ký tự '|'");
         this.title = title.trim();
     }
     
-    public String getCategory() {
-        return category;
+    public String getCategoryId() {
+        return categoryId;
     }
-    public void setCategory(String category) {
-        if (category == null || category.trim().isEmpty()) {
-            throw new IllegalArgumentException("Thể loại phim không được để trống");
+    public void setCategoryId(String categoryId) throws ValidationException {
+        if (categoryId == null || categoryId.trim().isEmpty()) {
+            throw new ValidationException("Mã thể loại phim không được để trống");
         }
-        this.category = category.trim();
+        if (categoryId.contains("|")) throw new ValidationException("Dữ liệu không được chứa ký tự '|'");
+        this.categoryId = categoryId.trim();
     }
 
     public String getDirector() {
         return director;
     }
 
-    public void setDirector(String director) {
+    public void setDirector(String director) throws ValidationException {
         if (director == null || director.trim().isEmpty()) {
-            throw new IllegalArgumentException("Đạo diễn không được để trống!");
+            throw new ValidationException("Đạo diễn không được để trống!");
         }
+        if (director.contains("|")) throw new ValidationException("Dữ liệu không được chứa ký tự '|'");
         this.director = director.trim();
     }
 
@@ -83,10 +90,11 @@ public class Movie {
         return actors;
     }
 
-    public void setActors(String actors) {
+    public void setActors(String actors) throws ValidationException {
         if (actors == null || actors.trim().isEmpty()) {
-            throw new IllegalArgumentException("Danh sách diễn viên không được để trống!");
+            throw new ValidationException("Danh sách diễn viên không được để trống!");
         }
+        if (actors.contains("|")) throw new ValidationException("Dữ liệu không được chứa ký tự '|'");
         this.actors = actors.trim();
     }
 
@@ -94,10 +102,10 @@ public class Movie {
         return releaseYear;
     }
     
-    public void setReleaseYear(int releaseYear) {
+    public void setReleaseYear(int releaseYear) throws ValidationException {
         int currentYear = java.time.Year.now().getValue();
         if (releaseYear < 1888 || releaseYear > currentYear) {
-            throw new IllegalArgumentException("Năm phát hành không hợp lệ. Phải nằm trong khoảng 1888 đến " + currentYear);
+            throw new ValidationException("Năm phát hành không hợp lệ. Phải nằm trong khoảng 1888 đến " + currentYear);
         }
         this.releaseYear = releaseYear;
     }
@@ -106,9 +114,9 @@ public class Movie {
         return rating;
     }
 
-    public void setRating(double rating) {
+    public void setRating(double rating) throws ValidationException {
         if (rating < 0.0 || rating > 10.0) {
-            throw new IllegalArgumentException("Điểm đánh giá phải nằm trong khoảng 0.0 đến 10.0");
+            throw new ValidationException("Điểm đánh giá phải nằm trong khoảng 0.0 đến 10.0");
         }
         this.rating = rating;
     }
@@ -117,9 +125,9 @@ public class Movie {
         return views;
     }
 
-    public void setViews(long views) {
+    public void setViews(long views) throws ValidationException {
         if (views < 0) {
-            throw new IllegalArgumentException("Lượt xem không được âm");
+            throw new ValidationException("Lượt xem không được âm");
         }
         this.views = views;
     }
@@ -128,9 +136,9 @@ public class Movie {
         return favouritesCount;
     }
 
-    public void setFavouritesCount(long favouritesCount) {
+    public void setFavouritesCount(long favouritesCount) throws ValidationException {
         if (favouritesCount < 0) {
-            throw new IllegalArgumentException("Lượt yêu thích không được âm");
+            throw new ValidationException("Lượt yêu thích không được âm");
         }
         this.favouritesCount = favouritesCount;
     }
@@ -143,10 +151,23 @@ public class Movie {
         isActive = active;
     }
     
-        @Override
+    @Override
     public String toString() {
-        return String.format("Phim [ID: %s | Tên: '%s' | Thể loại: %s | Đạo diễn: %s | Diễn viên: %s | Năm: %d | Rating: %.1f★ | Lượt xem: %d | Yêu thích: %d | Trạng thái: %s]",
-                id, title, category, director, actors, releaseYear, rating, views, favouritesCount, (isActive ? "ACTIVE" : "INACTIVE"));
+        return String.format("Phim [ID: %s | Tên: '%s' | Mã Thể loại: %s | Đạo diễn: %s | Diễn viên: %s | Năm: %d | Rating: %.1f★ | Lượt xem: %d | Yêu thích: %d | Trạng thái: %s]",
+                id, title, categoryId, director, actors, releaseYear, rating, views, favouritesCount, (isActive ? "ACTIVE" : "INACTIVE"));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Movie movie = (Movie) o;
+        return Objects.equals(id, movie.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
     }
     
 }
