@@ -23,7 +23,7 @@ public class MovieRepository {
                 
                 line.append(movie.getId()).append(DELIMITER)
                     .append(movie.getTitle()).append(DELIMITER)
-                    .append(movie.getCategory()).append(DELIMITER)
+                    .append(movie.getCategoryId()).append(DELIMITER)
                     .append(movie.getDirector()).append(DELIMITER)
                     .append(movie.getActors()).append(DELIMITER)
                     .append(movie.getReleaseYear()).append(DELIMITER)
@@ -63,7 +63,7 @@ public class MovieRepository {
                     if (parts.length >= 10) {
                         String id = parts[0];
                         String title = parts[1];
-                        String category = parts[2];
+                        String categoryId = parts[2];
                         String director = parts[3];
                         String actors = parts[4];
                         // PARSING
@@ -75,7 +75,7 @@ public class MovieRepository {
 
                         // Khởi tạo Movie bằng Constructor đầy đủ
 
-                        Movie movie = new Movie(id, title, category, director, actors, releaseYear, rating, views, favouritesCount, isActive);
+                        Movie movie = new Movie(id, title, categoryId, director, actors, releaseYear, rating, views, favouritesCount, isActive);
                         movieList.add(movie);
 
                     }
