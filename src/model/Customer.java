@@ -12,7 +12,11 @@ public class Customer extends User {
     // Constructor mặc định
     public Customer () {
         super();
-        this.role = "CUSTOMER";
+        try {
+            this.setRole("CUSTOMER");
+        } catch (ValidationException e) {
+            // Không bao giờ xảy ra
+        }
         this.watchlist = new ArrayList<>();
         this.favouriteList = new ArrayList<>();
         this.watchHistory = new ArrayList<>();
@@ -22,30 +26,30 @@ public class Customer extends User {
     public Customer (String id, String username, String password, String fullName, String email, 
     List<String> watchlist, List<String> favouriteList, List<String> watchHistory) throws ValidationException {
         super(id, username, password, fullName, email, "CUSTOMER");
-        this.watchlist = (watchlist != null) ? watchlist : new ArrayList<>();
-        this.favouriteList = (favouriteList != null) ? favouriteList : new ArrayList<>();
-        this.watchHistory = (watchHistory != null) ? watchHistory : new ArrayList<>();
+        this.watchlist = (watchlist != null) ? new ArrayList<>(watchlist) : new ArrayList<>();
+        this.favouriteList = (favouriteList != null) ? new ArrayList<>(favouriteList) : new ArrayList<>();
+        this.watchHistory = (watchHistory != null) ? new ArrayList<>(watchHistory) : new ArrayList<>();
     }
 
     // === Getters & Setters ===
     public List<String> getWatchlist() {
-        return watchlist;
+        return new ArrayList<>(watchlist); // Trả về bản sao để bảo vệ tính đóng gói
     }
 
      public void setWatchlist(List<String> watchlist) {
-        this.watchlist = (watchlist != null) ? watchlist : new ArrayList<>();
+        this.watchlist = (watchlist != null) ? new ArrayList<>(watchlist) : new ArrayList<>();
     }
     public List<String> getFavouriteList() {
-        return favouriteList;
+        return new ArrayList<>(favouriteList);
     }
     public void setFavouriteList(List<String> favouriteList) {
-        this.favouriteList = (favouriteList != null) ? favouriteList : new ArrayList<>();
+        this.favouriteList = (favouriteList != null) ? new ArrayList<>(favouriteList) : new ArrayList<>();
     }
     public List<String> getWatchHistory() {
-        return watchHistory;
+        return new ArrayList<>(watchHistory);
     }
     public void setWatchHistory(List<String> watchHistory) {
-        this.watchHistory = (watchHistory != null) ? watchHistory : new ArrayList<>();
+        this.watchHistory = (watchHistory != null) ? new ArrayList<>(watchHistory) : new ArrayList<>();
     }
     @Override
     public String toString() {
