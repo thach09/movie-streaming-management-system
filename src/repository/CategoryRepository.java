@@ -23,9 +23,10 @@ public class CategoryRepository {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
             for (Category cat : categoriesList) {
                 // Ghép các thuộc tính lại thành một chuỗi và ngăn cách bởi DELIMITER |
-                String line = cat.getId() + DELIMITER +
+                              String desc = cat.getDescription();
+                              String line = cat.getId() + DELIMITER +
                               cat.getName() + DELIMITER +
-                              cat.getDescription() + DELIMITER +
+                              (desc != null ? desc : "") + DELIMITER +
                               cat.isActive();
                 bw.write(line); // ghi chuỗi vào file
                 bw.newLine(); // xuống dòng và ghi Category tiếp theo
