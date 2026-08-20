@@ -54,19 +54,34 @@ public class CategoryController {
 
     public boolean deleteCategory(String id) throws ValidationException {
         Category category = findReferenceById(id);
-        if (category != null) {
-            // Chỉ check ràng buộc nếu movieController đã được gán
-            if (movieController != null && movieController.existsActiveMovieInCategory(id)) {
-                throw new ValidationException("Không thể xóa danh mục vì còn phim đang active tham chiếu tới!");
-            }
-            categoryList.remove(category); // Sử dụng equals() đã override trong Category
-            return categoryRepository.saveAll(categoryList);
+        if (category == null) {
+            throw new ValidationException("Không tìm thấy danh mục có ID '" + id + "'");
         }
-        return false;
+        if (movieController != null && movieController.existsActiveMovieInCategory(id)) {
+            throw new ValidationException("Không thể xóa danh mục vì còn phim đang active tham chiếu tới!");
+        }
+        category.setActive(false); // Soft Delete: đánh dấu inactive thay vì xóa khỏi danh sách
+        return categoryRepository.saveAll(categoryList);
     }
 
+    // Dành cho Admin: Lấy toàn bộ danh mục (kể cả inactive)
     public List<Category> getAllCategories() {
-        return new ArrayList<>(categoryList); // Trả về bản sao để bảo vệ tính đóng gói
+        List<Category> copies = new ArrayList<>();
+        for (Category cat : categoryList) {
+            copies.add(new Category(cat));
+        }
+        return copies;
+    }
+
+    // Dành cho Customer: Chỉ lấy danh mục đang active
+    public List<Category> getActiveCategories() {
+        List<Category> activeCopies = new ArrayList<>();
+        for (Category cat : categoryList) {
+            if (cat.isActive()) {
+                activeCopies.add(new Category(cat));
+            }
+        }
+        return activeCopies;
     }
 
     private Category findReferenceById(String id) {
