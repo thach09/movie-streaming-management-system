@@ -5,7 +5,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CategoryRepository {
+public class CategoryRepository implements ICategoryRepository {
 
     private static final String FILE_PATH = "data/categories.txt";
 
