@@ -16,12 +16,27 @@ public class Movie {
     private long favouritesCount;
     private boolean isActive;
 
-    // Constructor không tham số
-    public Movie () {
+    // 2. Constructor không tham số (Mặc định)
+    public Movie() {
         this.isActive = true;
         this.views = 0;
         this.favouritesCount = 0;
         this.rating = 0.0;
+    }
+
+    // Copy Constructor: Tạo bản sao sâu bằng cách gán field trực tiếp
+    // (Bỏ qua Setter để tránh ném ValidationException thừa thãi)
+    public Movie(Movie source) {
+        this.id = source.id;
+        this.title = source.title;
+        this.categoryId = source.categoryId;
+        this.director = source.director;
+        this.actors = source.actors;
+        this.releaseYear = source.releaseYear;
+        this.rating = source.rating;
+        this.views = source.views;
+        this.favouritesCount = source.favouritesCount;
+        this.isActive = source.isActive;
     }
 
     // Constructor đầy đủ tham số
