@@ -5,7 +5,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MovieRepository {
+public class MovieRepository implements IMovieRepository {
     private static final String FILE_PATH = "data/movies.txt";
     private static final String DELIMITER = "|";
 
