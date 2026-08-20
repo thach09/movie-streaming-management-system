@@ -29,6 +29,17 @@ public abstract class User {
         this.isActive = true;
     }
 
+    // Constructor 3: Copy Constructor (protected — chỉ cho subclass gọi qua super)
+    protected User(User source) {
+        this.id = source.id;
+        this.username = source.username;
+        this.password = source.password;
+        this.fullName = source.fullName;
+        this.email = source.email;
+        this.role = source.role;
+        this.isActive = source.isActive;
+    }
+
     // === Getters & Setters ===
 
     public String getId() {

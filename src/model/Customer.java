@@ -31,6 +31,14 @@ public class Customer extends User {
         this.watchHistory = (watchHistory != null) ? new ArrayList<>(watchHistory) : new ArrayList<>();
     }
 
+    // Copy Constructor (deep copy 3 danh sách để không chia sẻ reference)
+    public Customer(Customer source) {
+        super(source); // Gọi copy constructor của User (protected)
+        this.watchlist = new ArrayList<>(source.watchlist);
+        this.favouriteList = new ArrayList<>(source.favouriteList);
+        this.watchHistory = new ArrayList<>(source.watchHistory);
+    }
+
     // === Getters & Setters ===
     public List<String> getWatchlist() {
         return new ArrayList<>(watchlist); // Trả về bản sao để bảo vệ tính đóng gói

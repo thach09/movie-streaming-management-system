@@ -24,6 +24,11 @@ public class Admin extends User {
         super(id, username, password, fullName, email, "ADMIN");
     }
 
+    // Copy Constructor
+    public Admin(Admin source) {
+        super(source); // Gọi copy constructor của User (protected)
+    }
+
     @Override
     public String toString() {
         return super.toString();

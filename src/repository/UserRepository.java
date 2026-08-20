@@ -7,7 +7,7 @@ import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class UserRepository {
+public class UserRepository implements IUserRepository {
     private static final String FILE_PATH = "data/users.txt";
     private static final String DELIMITER = "|";
     private static final String LIST_DELIMITER = ",";
