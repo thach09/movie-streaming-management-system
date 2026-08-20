@@ -1,7 +1,7 @@
 package controller;
 
 import model.Category;
-import repository.CategoryRepository;
+import repository.ICategoryRepository;
 import utils.ValidationException;
 
 import java.util.ArrayList;
@@ -9,11 +9,16 @@ import java.util.List;
 
 public class CategoryController {
     private List<Category> categoryList;
-    private CategoryRepository categoryRepository;
+    private ICategoryRepository categoryRepository;
+    private MovieController movieController; // Có thể null nếu chưa được set
 
-    public CategoryController() {
-        this.categoryRepository = new CategoryRepository();
+    public CategoryController(ICategoryRepository categoryRepository) {
+        this.categoryRepository = categoryRepository;
         this.categoryList = categoryRepository.loadAll();
+    }
+
+    public void setMovieController(MovieController movieController) {
+        this.movieController = movieController;
     }
 
     public boolean addCategory(String id, String name, String description) throws ValidationException {
@@ -35,14 +40,25 @@ public class CategoryController {
             throw new ValidationException("Không tìm thấy danh mục có ID '" + id + "'");
         }
         
+        // 1. Tạo bản sao tạm để test Validation
+        Category temp = new Category(category);
+        temp.setName(newName);
+        temp.setDescription(newDescription);
+
+        // 2. Nếu qua hết các Setter không lỗi, mới cập nhật vào Object thật
         category.setName(newName);
         category.setDescription(newDescription);
+        
         return categoryRepository.saveAll(categoryList);
     }
 
-    public boolean deleteCategory(String id) {
+    public boolean deleteCategory(String id) throws ValidationException {
         Category category = findReferenceById(id);
         if (category != null) {
+            // Chỉ check ràng buộc nếu movieController đã được gán
+            if (movieController != null && movieController.existsActiveMovieInCategory(id)) {
+                throw new ValidationException("Không thể xóa danh mục vì còn phim đang active tham chiếu tới!");
+            }
             categoryList.remove(category); // Sử dụng equals() đã override trong Category
             return categoryRepository.saveAll(categoryList);
         }
