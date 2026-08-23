@@ -68,7 +68,7 @@ public class CustomerController {
         favourites.add(movieId);
         customer.setFavouriteList(favourites);
 
-        // Tăng tổng lượt thích trên Movie (tổng lịch sử, không giảm khi remove)
+        // Tăng số lượt yêu thích đang active trên Movie (Phương án A - Current State)
         movieController.incrementFavouritesCount(movieId);
 
         return userController.persistUserChanges();
@@ -76,7 +76,7 @@ public class CustomerController {
 
     /**
      * Xóa phim khỏi danh sách yêu thích.
-     * KHÔNG giảm favouritesCount — đây là tổng lịch sử yêu thích, không phải số "đang active".
+     * Giảm favouritesCount trên Movie (Phương án A — phản ánh số lượng đang active yêu thích).
      */
     public boolean removeFromFavourites(String customerId, String movieId) throws ValidationException {
         Customer customer = userController.findActiveCustomerReferenceForController(customerId);
@@ -86,7 +86,10 @@ public class CustomerController {
             throw new ValidationException("Phim '" + movieId + "' không có trong danh sách yêu thích!");
         }
         customer.setFavouriteList(favourites);
-        // KHÔNG gọi decrementFavouritesCount — favouritesCount là tổng lịch sử
+
+        // Giảm số lượt yêu thích đang active trên Movie (Phương án A - Current State)
+        movieController.decrementFavouritesCount(movieId);
+
         return userController.persistUserChanges();
     }
 
