@@ -154,4 +154,17 @@ public class MovieController {
         }
         return false;
     }
+
+    public boolean decrementFavouritesCount(String id) {
+        Movie movie = findReferenceById(id);
+        if (movie != null && movie.isActive() && movie.getFavouritesCount() > 0) {
+            try {
+                movie.setFavouritesCount(movie.getFavouritesCount() - 1);
+                return movieRepository.saveAll(movieList);
+            } catch (ValidationException e) {
+                // Không bao giờ xảy ra vì đã check > 0 trước khi giảm
+            }
+        }
+        return false;
+    }
 }

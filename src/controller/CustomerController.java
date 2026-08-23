@@ -2,21 +2,18 @@ package controller;
 
 import model.Customer;
 import model.Movie;
-import model.User;
-import repository.IUserRepository;
 import utils.ValidationException;
 
 import java.util.List;
 
 public class CustomerController {
-    private List<User> userList;
-    private IUserRepository userRepository;
+    private UserController userController;
     private MovieController movieController;
 
-    // Constructor Injection: nhận IUserRepository và MovieController
-    public CustomerController(IUserRepository userRepository, MovieController movieController) {
-        this.userRepository = userRepository;
-        this.userList = userRepository.loadAll();
+    // Constructor Injection: nhận UserController (dùng CHUNG nguồn dữ liệu User)
+    // và MovieController (validate FK chéo movieId)
+    public CustomerController(UserController userController, MovieController movieController) {
+        this.userController = userController;
         this.movieController = movieController;
     }
 
@@ -27,7 +24,7 @@ public class CustomerController {
      * Validate: Customer tồn tại + active, Movie tồn tại + active, chưa có trong watchlist.
      */
     public boolean addToWatchlist(String customerId, String movieId) throws ValidationException {
-        Customer customer = findActiveCustomerReference(customerId);
+        Customer customer = userController.findActiveCustomerReferenceForController(customerId);
         validateActiveMovieExists(movieId);
 
         List<String> watchlist = customer.getWatchlist(); // Lấy bản sao
@@ -36,7 +33,7 @@ public class CustomerController {
         }
         watchlist.add(movieId);
         customer.setWatchlist(watchlist); // Gán lại bản sao đã sửa
-        return userRepository.saveAll(userList);
+        return userController.persistUserChanges();
     }
 
     /**
@@ -44,14 +41,14 @@ public class CustomerController {
      * Không cần check movie active — phim đã bị gỡ vẫn được phép xóa khỏi watchlist.
      */
     public boolean removeFromWatchlist(String customerId, String movieId) throws ValidationException {
-        Customer customer = findActiveCustomerReference(customerId);
+        Customer customer = userController.findActiveCustomerReferenceForController(customerId);
 
         List<String> watchlist = customer.getWatchlist();
         if (!watchlist.remove(movieId)) {
             throw new ValidationException("Phim '" + movieId + "' không có trong danh sách chờ xem!");
         }
         customer.setWatchlist(watchlist);
-        return userRepository.saveAll(userList);
+        return userController.persistUserChanges();
     }
 
     // ===================== FAVOURITES =====================
@@ -61,7 +58,7 @@ public class CustomerController {
      * Khi thành công, gọi movieController.incrementFavouritesCount() để tăng tổng lượt thích.
      */
     public boolean addToFavourites(String customerId, String movieId) throws ValidationException {
-        Customer customer = findActiveCustomerReference(customerId);
+        Customer customer = userController.findActiveCustomerReferenceForController(customerId);
         validateActiveMovieExists(movieId);
 
         List<String> favourites = customer.getFavouriteList();
@@ -74,7 +71,7 @@ public class CustomerController {
         // Tăng tổng lượt thích trên Movie (tổng lịch sử, không giảm khi remove)
         movieController.incrementFavouritesCount(movieId);
 
-        return userRepository.saveAll(userList);
+        return userController.persistUserChanges();
     }
 
     /**
@@ -82,7 +79,7 @@ public class CustomerController {
      * KHÔNG giảm favouritesCount — đây là tổng lịch sử yêu thích, không phải số "đang active".
      */
     public boolean removeFromFavourites(String customerId, String movieId) throws ValidationException {
-        Customer customer = findActiveCustomerReference(customerId);
+        Customer customer = userController.findActiveCustomerReferenceForController(customerId);
 
         List<String> favourites = customer.getFavouriteList();
         if (!favourites.remove(movieId)) {
@@ -90,7 +87,7 @@ public class CustomerController {
         }
         customer.setFavouriteList(favourites);
         // KHÔNG gọi decrementFavouritesCount — favouritesCount là tổng lịch sử
-        return userRepository.saveAll(userList);
+        return userController.persistUserChanges();
     }
 
     // ===================== WATCH HISTORY =====================
@@ -101,7 +98,7 @@ public class CustomerController {
      * Khi thành công, gọi movieController.incrementViews() để tăng tổng lượt xem.
      */
     public boolean addToWatchHistory(String customerId, String movieId) throws ValidationException {
-        Customer customer = findActiveCustomerReference(customerId);
+        Customer customer = userController.findActiveCustomerReferenceForController(customerId);
         validateActiveMovieExists(movieId);
 
         List<String> history = customer.getWatchHistory();
@@ -111,33 +108,10 @@ public class CustomerController {
         // Tăng lượt xem trên Movie
         movieController.incrementViews(movieId);
 
-        return userRepository.saveAll(userList);
+        return userController.persistUserChanges();
     }
 
     // ===================== PRIVATE HELPERS =====================
-
-    /**
-     * Tìm Customer (tham chiếu thật) trong danh sách nội bộ.
-     * Chỉ trả về Customer đang active.
-     * Throw ValidationException nếu: không tìm thấy, không phải Customer, hoặc đã bị vô hiệu hóa.
-     */
-    private Customer findActiveCustomerReference(String customerId) throws ValidationException {
-        if (customerId == null || customerId.trim().isEmpty()) {
-            throw new ValidationException("ID khách hàng không được để trống!");
-        }
-        for (User user : userList) {
-            if (user.getId().equalsIgnoreCase(customerId)) {
-                if (!(user instanceof Customer)) {
-                    throw new ValidationException("Tài khoản '" + customerId + "' không phải là khách hàng!");
-                }
-                if (!user.isActive()) {
-                    throw new ValidationException("Tài khoản khách hàng '" + customerId + "' đã bị vô hiệu hóa!");
-                }
-                return (Customer) user;
-            }
-        }
-        throw new ValidationException("Không tìm thấy khách hàng có ID '" + customerId + "'!");
-    }
 
     /**
      * Kiểm tra phim tồn tại và đang active.

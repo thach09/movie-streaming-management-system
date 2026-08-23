@@ -115,6 +115,40 @@ public class UserController {
         return null;
     }
 
+    // --- HÀM CHIA SẺ NỘI BỘ PACKAGE (PACKAGE-PRIVATE) ---
+
+    /**
+     * Package-private: chỉ cho phép các Controller khác trong cùng package gọi.
+     * Trả về tham chiếu THẬT của Customer đang active — dùng cho CustomerController
+     * mutate trực tiếp vào đúng object trong userList mà không cần giữ bản sao riêng.
+     */
+    Customer findActiveCustomerReferenceForController(String customerId) throws ValidationException {
+        if (customerId == null || customerId.trim().isEmpty()) {
+            throw new ValidationException("ID khách hàng không được để trống!");
+        }
+        for (User user : userList) {
+            if (user.getId().equalsIgnoreCase(customerId)) {
+                if (!(user instanceof Customer)) {
+                    throw new ValidationException("Tài khoản '" + customerId + "' không phải là khách hàng!");
+                }
+                if (!user.isActive()) {
+                    throw new ValidationException("Tài khoản khách hàng '" + customerId + "' đã bị vô hiệu hóa!");
+                }
+                return (Customer) user;
+            }
+        }
+        throw new ValidationException("Không tìm thấy khách hàng có ID '" + customerId + "'!");
+    }
+
+    /**
+     * Lưu toàn bộ danh sách User xuống file.
+     * Dùng cho CustomerController gọi sau khi mutate Customer xong,
+     * vì userList thuộc sở hữu của UserController.
+     */
+    public boolean persistUserChanges() {
+        return userRepository.saveAll(userList);
+    }
+
     /**
      * Tạo bản sao User đúng kiểu thực tế nhờ đa hình (instanceof).
      * Admin → new Admin(admin), Customer → new Customer(customer).
