@@ -167,4 +167,38 @@ public class MovieController {
         }
         return false;
     }
+
+    // --- CÁC HÀM TÌM KIẾM & SẮP XẾP (TÍCH HỢP SORTUTILS / SEARCHUTILS) ---
+
+    public List<Movie> sortMoviesByTitle(boolean ascending) {
+        return utils.SortUtils.sortByTitle(getActiveMovies(), ascending);
+    }
+
+    public List<Movie> sortMoviesByRating(boolean ascending) {
+        return utils.SortUtils.sortByRating(getActiveMovies(), ascending);
+    }
+
+    public List<Movie> sortMoviesByReleaseYear(boolean ascending) {
+        return utils.SortUtils.sortByReleaseYear(getActiveMovies(), ascending);
+    }
+
+    public List<Movie> sortMoviesByPopularity(boolean ascending) {
+        return utils.SortUtils.sortByPopularity(getActiveMovies(), ascending);
+    }
+
+    public List<Movie> searchMoviesByTitle(String keyword) {
+        return utils.SearchUtils.searchByTitle(getActiveMovies(), keyword);
+    }
+
+    public List<Movie> searchMoviesByActor(String keyword) {
+        return utils.SearchUtils.searchByActor(getActiveMovies(), keyword);
+    }
+
+    public List<Movie> searchMoviesByDirector(String keyword) {
+        return utils.SearchUtils.searchByDirector(getActiveMovies(), keyword);
+    }
+
+    public List<Movie> searchMoviesByCategory(String categoryId) {
+        return utils.SearchUtils.searchByCategoryId(getActiveMovies(), categoryId);
+    }
 }
