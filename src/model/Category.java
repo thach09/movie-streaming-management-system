@@ -41,6 +41,7 @@ public class Category {
             throw new ValidationException("Mã danh mục (ID) không được để trống!");
         }
         if (id.contains("|")) throw new ValidationException("ID không được chứa ký tự '|'");
+        if (id.contains(",")) throw new ValidationException("ID không được chứa ký tự ','");
         this.id = id.trim();
     }
 
@@ -64,7 +65,7 @@ public class Category {
         if (description != null && description.contains("|")) {
             throw new ValidationException("Mô tả không được chứa ký tự '|'");
         }
-        this.description = description;
+        this.description = (description != null) ? description.trim() : null;
     }
 
     public boolean isActive() {
