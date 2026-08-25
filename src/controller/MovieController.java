@@ -1,5 +1,6 @@
 package controller;
 
+import model.Category;
 import model.Movie;
 import repository.IMovieRepository;
 import utils.ValidationException;
@@ -74,9 +75,13 @@ public class MovieController {
             throw new ValidationException("Mã phim '" + id + "' đã tồn tại!");
         }
 
-        // 2. Ràng buộc Khóa Ngoại: Category phải tồn tại
-        if (categoryController.findById(categoryId) == null) {
+        // 2. Ràng buộc Khóa Ngoại: Category phải tồn tại và đang active
+        Category category = categoryController.findById(categoryId);
+        if (category == null) {
             throw new ValidationException("Danh mục có mã '" + categoryId + "' không tồn tại!");
+        }
+        if (!category.isActive()) {
+            throw new ValidationException("Danh mục có mã '" + categoryId + "' đã bị vô hiệu hóa, không thể thêm phim mới!");
         }
 
         // 3. Khởi tạo đối tượng (Tự validate ký tự |, rỗng...)
@@ -95,8 +100,12 @@ public class MovieController {
 
         // Check Khóa ngoại mới (nếu đổi category)
         if (!movie.getCategoryId().equalsIgnoreCase(categoryId)) {
-            if (categoryController.findById(categoryId) == null) {
+            Category category = categoryController.findById(categoryId);
+            if (category == null) {
                 throw new ValidationException("Danh mục có mã '" + categoryId + "' không tồn tại!");
+            }
+            if (!category.isActive()) {
+                throw new ValidationException("Danh mục có mã '" + categoryId + "' đã bị vô hiệu hóa, không thể chuyển phim sang!");
             }
         }
 
@@ -200,5 +209,87 @@ public class MovieController {
 
     public List<Movie> searchMoviesByCategory(String categoryId) {
         return utils.SearchUtils.searchByCategoryId(getActiveMovies(), categoryId);
+    }
+
+    // --- THỐNG KÊ & XẾP HẠNG (GIAI ĐOẠN 4) ---
+
+    /**
+     * Tính tổng views của tất cả Movie active thuộc 1 categoryId.
+     * Dùng cho CategoryController.getTrendingCategories().
+     */
+    public long getTotalViewsByCategory(String categoryId) {
+        long totalViews = 0;
+        for (Movie movie : movieList) {
+            if (movie.isActive() && movie.getCategoryId().equalsIgnoreCase(categoryId)) {
+                totalViews += movie.getViews();
+            }
+        }
+        return totalViews;
+    }
+
+    /**
+     * Trả về thống kê tổng quan hệ thống dưới dạng DTO Statistics.
+     * Bao gồm: tổng số phim active, tổng views, tổng favourites, rating TB, top 5 phim xem nhiều nhất.
+     */
+    public model.Statistics getViewingStatistics() {
+        List<Movie> activeMovies = getActiveMovies(); // Đã là bản sao
+
+        long totalMovies = activeMovies.size();
+        long totalViews = 0;
+        long totalFavourites = 0;
+        double sumRating = 0.0;
+
+        for (Movie movie : activeMovies) {
+            totalViews += movie.getViews();
+            totalFavourites += movie.getFavouritesCount();
+            sumRating += movie.getRating();
+        }
+
+        double averageRating = (totalMovies > 0) ? sumRating / totalMovies : 0.0;
+
+        // Top 5 phim xem nhiều nhất — dùng lại SortUtils đã viết (Giai đoạn 3)
+        List<Movie> sortedByViews = utils.SortUtils.sortByViews(activeMovies, false); // Giảm dần
+        List<Movie> top5 = new ArrayList<>();
+        for (int i = 0; i < sortedByViews.size() && i < 5; i++) {
+            top5.add(sortedByViews.get(i));
+        }
+
+        return new model.Statistics(totalMovies, totalViews, totalFavourites, averageRating, top5);
+    }
+
+    /**
+     * Auto Ranking: sắp xếp phim theo công thức điểm xếp hạng.
+     * Công thức: score = rating * 10 + views * 0.01 + favouritesCount * 0.5
+     * Dùng thuật toán Bubble Sort tự viết (không dùng Collections.sort).
+     * Trả về danh sách phim active sắp theo score giảm dần.
+     */
+    public List<Movie> getAutoRanking() {
+        List<Movie> activeMovies = getActiveMovies(); // Đã là bản sao
+        int n = activeMovies.size();
+
+        // Bubble Sort theo score giảm dần
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = 0; j < n - i - 1; j++) {
+                double score1 = calculateRankingScore(activeMovies.get(j));
+                double score2 = calculateRankingScore(activeMovies.get(j + 1));
+                // Giảm dần: nếu score trước < score sau thì swap
+                if (score1 < score2) {
+                    Movie temp = activeMovies.get(j);
+                    activeMovies.set(j, activeMovies.get(j + 1));
+                    activeMovies.set(j + 1, temp);
+                }
+            }
+        }
+        return activeMovies;
+    }
+
+    /**
+     * Công thức tính điểm xếp hạng
+     * score = rating * 10 + views * 0.01 + favouritesCount * 0.5
+     */
+    private double calculateRankingScore(Movie movie) {
+        return movie.getRating() * 10
+                + movie.getViews() * 0.01
+                + movie.getFavouritesCount() * 0.5;
     }
 }
