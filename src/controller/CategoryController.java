@@ -97,4 +97,46 @@ public class CategoryController {
         Category cat = findReferenceById(id);
         return cat != null ? new Category(cat) : null;
     }
+
+    // --- TRENDING CATEGORIES (GIAI ĐOẠN 4) ---
+
+    /**
+     * Trả về danh sách Category active sắp theo tổng views giảm dần.
+     * Đếm tổng views của Movie active thuộc mỗi Category qua MovieController.
+     * Dùng thuật toán Bubble Sort tự viết (không dùng Collections.sort).
+     * Yêu cầu: movieController phải đã được set trước khi gọi.
+     */
+    public List<Category> getTrendingCategories() {
+        List<Category> activeCategories = getActiveCategories(); // Đã là bản sao deep copy
+
+        if (movieController == null || activeCategories.isEmpty()) {
+            return activeCategories;
+        }
+
+        // Tính tổng views cho mỗi category và lưu vào mảng song song
+        long[] viewCounts = new long[activeCategories.size()];
+        for (int i = 0; i < activeCategories.size(); i++) {
+            viewCounts[i] = movieController.getTotalViewsByCategory(activeCategories.get(i).getId());
+        }
+
+        // Bubble Sort giảm dần theo viewCounts — swap cả Category và viewCount
+        int n = activeCategories.size();
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = 0; j < n - i - 1; j++) {
+                if (viewCounts[j] < viewCounts[j + 1]) {
+                    // Swap viewCounts
+                    long tempCount = viewCounts[j];
+                    viewCounts[j] = viewCounts[j + 1];
+                    viewCounts[j + 1] = tempCount;
+
+                    // Swap Category tương ứng
+                    Category tempCat = activeCategories.get(j);
+                    activeCategories.set(j, activeCategories.get(j + 1));
+                    activeCategories.set(j + 1, tempCat);
+                }
+            }
+        }
+
+        return activeCategories;
+    }
 }
