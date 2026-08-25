@@ -51,6 +51,7 @@ public abstract class User {
             throw new ValidationException("ID không được để trống!");
         }
         if (id.contains("|")) throw new ValidationException("ID không được chứa ký tự '|'");
+        if (id.contains(",")) throw new ValidationException("ID không được chứa ký tự ','");
         this.id = id.trim();
     }
 
@@ -109,6 +110,7 @@ public abstract class User {
         if (role == null || role.trim().isEmpty()) {
             throw new ValidationException("Vai trò không được để trống!");
         }
+        if (role.contains("|")) throw new ValidationException("Vai trò không được chứa ký tự '|'");
         String cleanRole = role.trim().toUpperCase();
         if (!cleanRole.equals("ADMIN") && !cleanRole.equals("CUSTOMER")) {
             throw new ValidationException("Vai trò không hợp lệ (chỉ chấp nhận ADMIN hoặc CUSTOMER)!");
