@@ -63,6 +63,7 @@ public class Movie {
             throw new ValidationException("Mã phim không được để trống!");
         }
         if (id.contains("|")) throw new ValidationException("Dữ liệu không được chứa ký tự '|'");
+        if (id.contains(",")) throw new ValidationException("Mã phim không được chứa ký tự ','");
         this.id = id.trim();
     }
 
