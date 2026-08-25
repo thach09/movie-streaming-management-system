@@ -68,7 +68,8 @@ public class CustomerController {
         favourites.add(movieId);
         customer.setFavouriteList(favourites);
 
-        // Tăng số lượt yêu thích đang active trên Movie (Phương án A - Current State)
+        // Lưu ý: Nếu increment thất bại (hiếm khi xảy ra vì movie đã validate active ở trên),
+        // Customer vẫn được cập nhật — chấp nhận được vì CLI đơn luồng, không có race condition.
         movieController.incrementFavouritesCount(movieId);
 
         return userController.persistUserChanges();
@@ -108,7 +109,9 @@ public class CustomerController {
         history.add(movieId); // Cho phép trùng — xem lại nhiều lần
         customer.setWatchHistory(history);
 
-        // Tăng lượt xem trên Movie
+        // Lưu ý: Nếu increment thất bại (hiếm khi xảy ra vì movie đã validate active ở trên),
+        // Customer vẫn được cập nhật — chấp nhận được vì CLI đơn luồng, không có race condition.
+        // Đã cân nhắc và quyết định không rollback (xem quyết định Nhóm 2).
         movieController.incrementViews(movieId);
 
         return userController.persistUserChanges();
