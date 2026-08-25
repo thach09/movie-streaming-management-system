@@ -61,6 +61,24 @@ public class SortUtils {
         return result;
     }
 
+    // Thuật toán Bubble Sort thuần túy theo Views
+    public static List<Movie> sortByViews(List<Movie> movies, boolean ascending) {
+        List<Movie> result = new ArrayList<>(movies);
+        int n = result.size();
+        for (int i = 0; i < n - 1; i++) {
+            for (int j = 0; j < n - i - 1; j++) {
+                long pop1 = result.get(j).getViews();
+                long pop2 = result.get(j + 1).getViews();
+                if (ascending ? pop1 > pop2 : pop1 < pop2) {
+                    Movie temp = result.get(j);
+                    result.set(j, result.get(j + 1));
+                    result.set(j + 1, temp);
+                }
+            }
+        }
+        return result;
+    }
+
     // Thuật toán Bubble Sort cho Popularity = views + favouritesCount * 10
     public static List<Movie> sortByPopularity(List<Movie> movies, boolean ascending) {
         List<Movie> result = new ArrayList<>(movies);
