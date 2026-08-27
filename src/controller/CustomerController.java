@@ -2,6 +2,8 @@ package controller;
 
 import model.Customer;
 import model.Movie;
+import model.WatchlistAction;
+import utils.CustomStack;
 import utils.ValidationException;
 
 import java.util.List;
@@ -10,11 +12,17 @@ public class CustomerController {
     private UserController userController;
     private MovieController movieController;
 
+    // Undo/Redo Watchlist — lưu RAM theo session, KHÔNG ghi xuống file
+    private CustomStack<WatchlistAction> undoStack;
+    private CustomStack<WatchlistAction> redoStack;
+
     // Constructor Injection: nhận UserController (dùng CHUNG nguồn dữ liệu User)
     // và MovieController (validate FK chéo movieId)
     public CustomerController(UserController userController, MovieController movieController) {
         this.userController = userController;
         this.movieController = movieController;
+        this.undoStack = new CustomStack<>();
+        this.redoStack = new CustomStack<>();
     }
 
     // ===================== WATCHLIST =====================
@@ -33,7 +41,14 @@ public class CustomerController {
         }
         watchlist.add(movieId);
         customer.setWatchlist(watchlist); // Gán lại bản sao đã sửa
-        return userController.persistUserChanges();
+        boolean saved = userController.persistUserChanges();
+
+        // Ghi nhận hành động vào Undo Stack + xóa Redo Stack (hành động mới phá chuỗi redo)
+        if (saved) {
+            undoStack.push(new WatchlistAction(WatchlistAction.ActionType.ADD, movieId));
+            redoStack.clear();
+        }
+        return saved;
     }
 
     /**
@@ -48,7 +63,14 @@ public class CustomerController {
             throw new ValidationException("Phim '" + movieId + "' không có trong danh sách chờ xem!");
         }
         customer.setWatchlist(watchlist);
-        return userController.persistUserChanges();
+        boolean saved = userController.persistUserChanges();
+
+        // Ghi nhận hành động vào Undo Stack + xóa Redo Stack
+        if (saved) {
+            undoStack.push(new WatchlistAction(WatchlistAction.ActionType.REMOVE, movieId));
+            redoStack.clear();
+        }
+        return saved;
     }
 
     // ===================== FAVOURITES =====================
@@ -115,6 +137,120 @@ public class CustomerController {
         movieController.incrementViews(movieId);
 
         return userController.persistUserChanges();
+    }
+
+    // ===================== UNDO / REDO WATCHLIST =====================
+
+    /**
+     * Undo hành động Watchlist gần nhất.
+     * Nếu hành động gần nhất là ADD → thực hiện REMOVE (ngược lại).
+     * Nếu hành động gần nhất là REMOVE → thực hiện ADD.
+     * Hành động bị undo được đẩy sang redoStack.
+     */
+    public boolean undoWatchlist(String customerId) throws ValidationException {
+        if (undoStack.isEmpty()) {
+            throw new ValidationException("Không có hành động nào để Undo!");
+        }
+
+        WatchlistAction lastAction = undoStack.pop();
+        String movieId = lastAction.getMovieId();
+        Customer customer = userController.findActiveCustomerReferenceForController(customerId);
+        List<String> watchlist = customer.getWatchlist();
+
+        if (lastAction.getActionType() == WatchlistAction.ActionType.ADD) {
+            // Undo ADD = thực hiện REMOVE
+            watchlist.remove(movieId);
+        } else {
+            // Undo REMOVE = thực hiện ADD (chỉ thêm lại nếu chưa có)
+            if (!watchlist.contains(movieId)) {
+                watchlist.add(movieId);
+            }
+        }
+
+        customer.setWatchlist(watchlist);
+        boolean saved = userController.persistUserChanges();
+
+        // Đẩy hành động vừa undo sang Redo Stack (KHÔNG clear redo)
+        if (saved) {
+            redoStack.push(lastAction);
+        }
+        return saved;
+    }
+
+    /**
+     * Redo hành động Watchlist vừa bị Undo.
+     * Nếu hành động bị undo là ADD → thực hiện lại ADD.
+     * Nếu hành động bị undo là REMOVE → thực hiện lại REMOVE.
+     * Hành động được redo sẽ đẩy ngược lại undoStack.
+     */
+    public boolean redoWatchlist(String customerId) throws ValidationException {
+        if (redoStack.isEmpty()) {
+            throw new ValidationException("Không có hành động nào để Redo!");
+        }
+
+        WatchlistAction redoAction = redoStack.pop();
+        String movieId = redoAction.getMovieId();
+        Customer customer = userController.findActiveCustomerReferenceForController(customerId);
+        List<String> watchlist = customer.getWatchlist();
+
+        if (redoAction.getActionType() == WatchlistAction.ActionType.ADD) {
+            // Redo ADD = thực hiện ADD lại
+            if (!watchlist.contains(movieId)) {
+                watchlist.add(movieId);
+            }
+        } else {
+            // Redo REMOVE = thực hiện REMOVE lại
+            watchlist.remove(movieId);
+        }
+
+        customer.setWatchlist(watchlist);
+        boolean saved = userController.persistUserChanges();
+
+        // Đẩy hành động vừa redo ngược lại Undo Stack
+        if (saved) {
+            undoStack.push(redoAction);
+        }
+        return saved;
+    }
+
+    /**
+     * Kiểm tra có thể Undo hay không (stack không rỗng).
+     */
+    public boolean canUndo() {
+        return !undoStack.isEmpty();
+    }
+
+    /**
+     * Kiểm tra có thể Redo hay không (stack không rỗng).
+     */
+    public boolean canRedo() {
+        return !redoStack.isEmpty();
+    }
+
+    // ===================== READ-ONLY (cho View) =====================
+
+    /**
+     * Lấy danh sách Watchlist của Customer (bản sao).
+     */
+    public java.util.List<String> getWatchlist(String customerId) throws ValidationException {
+        Customer customer = userController.findActiveCustomerReferenceForController(customerId);
+        return customer.getWatchlist(); // Đã trả bản sao từ Customer.getWatchlist()
+    }
+
+    /**
+     * Lấy danh sách Favourite của Customer (bản sao).
+     */
+    public java.util.List<String> getFavouriteList(String customerId) throws ValidationException {
+        Customer customer = userController.findActiveCustomerReferenceForController(customerId);
+        return customer.getFavouriteList();
+    }
+
+    /**
+     * Lấy danh sách Watch History của Customer (bản sao).
+     */
+    public java.util.List<String> getWatchHistory(String customerId) throws ValidationException {
+        Customer customer = userController.findActiveCustomerReferenceForController(customerId);
+        return customer.getWatchHistory();
     }
 
     // ===================== PRIVATE HELPERS =====================

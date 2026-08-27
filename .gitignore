@@ -26,4 +26,5 @@ replay_pid*
 # Project output & context documentation
 bin/
 CONTEXT.md
+Technical.md
 
