@@ -52,7 +52,7 @@ public class Statistics {
         sb.append(String.format("Tổng số phim active   : %d\n", totalMovies));
         sb.append(String.format("Tổng lượt xem         : %d\n", totalViews));
         sb.append(String.format("Tổng lượt yêu thích   : %d\n", totalFavourites));
-        sb.append(String.format("Điểm đánh giá TB      : %.2f★\n", averageRating));
+        sb.append(String.format("Điểm đánh giá TB      : %.2f\n", averageRating));
         sb.append("--- Top 5 phim xem nhiều nhất ---\n");
         if (top5MostViewed.isEmpty()) {
             sb.append("  (Chưa có dữ liệu)\n");
