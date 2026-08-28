@@ -1,2 +1,2 @@
-thach09|thietthach09|porsche911|?? Thi?t Th?ch|thietthachdo@gmail.com|CUSTOMER|true|||
+thach09|thietthach09|porsche911|Đỗ Thiết Thạch|thietthachdo@gmail.com|CUSTOMER|true|||
 A01|admin|123456|System Admin|admin@gmail.com|ADMIN|true
