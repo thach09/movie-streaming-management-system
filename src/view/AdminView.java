@@ -8,6 +8,7 @@ import model.Movie;
 import model.Statistics;
 import model.User;
 import utils.InputValidator;
+import utils.TextUI;
 import utils.ValidationException;
 
 import java.util.List;
@@ -33,17 +34,15 @@ public class AdminView {
     public void showMenu() {
         int choice;
         do {
-            System.out.println("\n╔══════════════════════════════════════╗");
-            System.out.println("║       🎬 ADMIN DASHBOARD 🎬         ║");
-            System.out.println("╠══════════════════════════════════════╣");
-            System.out.println("║  1. Quản lý Thể loại (Category)     ║");
-            System.out.println("║  2. Quản lý Phim (Movie)            ║");
-            System.out.println("║  3. Xem danh sách Người dùng        ║");
-            System.out.println("║  4. Xem Thống kê hệ thống           ║");
-            System.out.println("║  5. Xem Auto Ranking (Xếp hạng)     ║");
-            System.out.println("║  6. Xem Trending Categories         ║");
-            System.out.println("║  0. Đăng xuất                       ║");
-            System.out.println("╚══════════════════════════════════════╝");
+            System.out.println("\n" + TextUI.menuBox("ADMIN DASHBOARD", new String[]{
+                    "  1. Quản lý Thể loại (Category)",
+                    "  2. Quản lý Phim (Movie)",
+                    "  3. Xem danh sách Người dùng",
+                    "  4. Xem Thống kê hệ thống",
+                    "  5. Xem Auto Ranking (Xếp hạng)",
+                    "  6. Xem Trending Categories",
+                    "  0. Đăng xuất"
+            }));
             choice = InputValidator.readInt(scanner, "Chọn chức năng: ", 0, 6);
 
             switch (choice) {
@@ -63,7 +62,7 @@ public class AdminView {
     private void categoryMenu() {
         int choice;
         do {
-            System.out.println("\n--- QUẢN LÝ THỂ LOẠI ---");
+            System.out.println("\n" + TextUI.header("QUẢN LÝ THỂ LOẠI"));
             System.out.println("1. Thêm thể loại");
             System.out.println("2. Sửa thể loại");
             System.out.println("3. Xóa thể loại (Soft Delete)");
@@ -89,12 +88,12 @@ public class AdminView {
             if (desc.isEmpty()) desc = null;
 
             if (categoryController.addCategory(id, name, desc)) {
-                System.out.println("✅ Thêm thể loại thành công!");
+                System.out.println("Thêm thể loại thành công!");
             } else {
-                System.out.println("❌ Lỗi ghi file!");
+                System.out.println("Lỗi ghi file!");
             }
         } catch (ValidationException e) {
-            System.out.println("❌ " + e.getMessage());
+            System.out.println(e.getMessage());
         }
     }
 
@@ -103,22 +102,22 @@ public class AdminView {
             String id = InputValidator.readString(scanner, "Nhập mã thể loại cần sửa: ");
             Category existing = categoryController.findById(id);
             if (existing == null) {
-                System.out.println("❌ Không tìm thấy thể loại!");
+                System.out.println("Không tìm thấy thể loại!");
                 return;
             }
             System.out.println("Thông tin hiện tại: " + existing);
             String name = InputValidator.readString(scanner, "Nhập tên mới: ");
-            System.out.print("Nhập mô tả mới (Enter để bỏ qua): ");
+            System.out.print("Nhập mô tả mới (Enter để giữ nguyên): ");
             String desc = scanner.nextLine().trim();
-            if (desc.isEmpty()) desc = null;
+            if (desc.isEmpty()) desc = existing.getDescription();
 
             if (categoryController.updateCategory(id, name, desc)) {
-                System.out.println("✅ Cập nhật thành công!");
+                System.out.println("Cập nhật thành công!");
             } else {
-                System.out.println("❌ Lỗi ghi file!");
+                System.out.println("Lỗi ghi file!");
             }
         } catch (ValidationException e) {
-            System.out.println("❌ " + e.getMessage());
+            System.out.println(e.getMessage());
         }
     }
 
@@ -126,12 +125,12 @@ public class AdminView {
         try {
             String id = InputValidator.readString(scanner, "Nhập mã thể loại cần xóa: ");
             if (categoryController.deleteCategory(id)) {
-                System.out.println("✅ Đã xóa (Soft Delete) thành công!");
+                System.out.println("Đã xóa (Soft Delete) thành công!");
             } else {
-                System.out.println("❌ Lỗi ghi file!");
+                System.out.println("Lỗi ghi file!");
             }
         } catch (ValidationException e) {
-            System.out.println("❌ " + e.getMessage());
+            System.out.println(e.getMessage());
         }
     }
 
@@ -141,7 +140,7 @@ public class AdminView {
             System.out.println("(Chưa có thể loại nào)");
             return;
         }
-        System.out.println("\n--- DANH SÁCH TẤT CẢ THỂ LOẠI ---");
+        System.out.println("\n" + TextUI.header("DANH SÁCH TẤT CẢ THỂ LOẠI"));
         for (Category cat : list) {
             System.out.println("  " + cat);
         }
@@ -152,7 +151,7 @@ public class AdminView {
     private void movieMenu() {
         int choice;
         do {
-            System.out.println("\n--- QUẢN LÝ PHIM ---");
+            System.out.println("\n" + TextUI.header("QUẢN LÝ PHIM"));
             System.out.println("1. Thêm phim");
             System.out.println("2. Sửa phim");
             System.out.println("3. Xóa phim (Soft Delete)");
@@ -183,12 +182,12 @@ public class AdminView {
             int year = InputValidator.readInt(scanner, "Nhập năm phát hành: ", 1888, java.time.Year.now().getValue());
 
             if (movieController.addMovie(id, title, categoryId, director, actors, year)) {
-                System.out.println("✅ Thêm phim thành công!");
+                System.out.println("Thêm phim thành công!");
             } else {
-                System.out.println("❌ Lỗi ghi file!");
+                System.out.println("Lỗi ghi file!");
             }
         } catch (ValidationException e) {
-            System.out.println("❌ " + e.getMessage());
+            System.out.println(e.getMessage());
         }
     }
 
@@ -197,7 +196,7 @@ public class AdminView {
             String id = InputValidator.readString(scanner, "Nhập mã phim cần sửa: ");
             Movie existing = movieController.findById(id);
             if (existing == null) {
-                System.out.println("❌ Không tìm thấy phim!");
+                System.out.println("Không tìm thấy phim!");
                 return;
             }
             System.out.println("Thông tin hiện tại: " + existing);
@@ -208,12 +207,12 @@ public class AdminView {
             int year = InputValidator.readInt(scanner, "Nhập năm phát hành mới: ", 1888, java.time.Year.now().getValue());
 
             if (movieController.updateMovie(id, title, categoryId, director, actors, year)) {
-                System.out.println("✅ Cập nhật phim thành công!");
+                System.out.println("Cập nhật phim thành công!");
             } else {
-                System.out.println("❌ Lỗi ghi file!");
+                System.out.println("Lỗi ghi file!");
             }
         } catch (ValidationException e) {
-            System.out.println("❌ " + e.getMessage());
+            System.out.println(e.getMessage());
         }
     }
 
@@ -221,12 +220,12 @@ public class AdminView {
         try {
             String id = InputValidator.readString(scanner, "Nhập mã phim cần xóa: ");
             if (movieController.deleteMovie(id)) {
-                System.out.println("✅ Đã xóa phim (Soft Delete) thành công!");
+                System.out.println("Đã xóa phim (Soft Delete) thành công!");
             } else {
-                System.out.println("❌ Lỗi ghi file!");
+                System.out.println("Lỗi ghi file!");
             }
         } catch (ValidationException e) {
-            System.out.println("❌ " + e.getMessage());
+            System.out.println(e.getMessage());
         }
     }
 
@@ -236,16 +235,19 @@ public class AdminView {
             System.out.println("(Chưa có phim nào)");
             return;
         }
-        System.out.println("\n--- DANH SÁCH TẤT CẢ PHIM ---");
-        for (Movie movie : list) {
-            System.out.println("  " + formatMovie(movie));
+        System.out.println("\n" + TextUI.header("DANH SÁCH TẤT CẢ PHIM"));
+        for (int i = 0; i < list.size(); i++) {
+            if (i > 0) {
+                System.out.println();
+            }
+            System.out.println("  " + formatMovie(list.get(i)));
         }
     }
 
     // ===================== SEARCH MOVIES =====================
 
     private void searchMovieMenu() {
-        System.out.println("\n--- TÌM KIẾM PHIM ---");
+        System.out.println("\n" + TextUI.header("TÌM KIẾM PHIM"));
         System.out.println("1. Theo tên phim");
         System.out.println("2. Theo diễn viên");
         System.out.println("3. Theo đạo diễn");
@@ -279,7 +281,7 @@ public class AdminView {
     // ===================== SORT MOVIES =====================
 
     private void sortMovieMenu() {
-        System.out.println("\n--- SẮP XẾP PHIM ---");
+        System.out.println("\n" + TextUI.header("SẮP XẾP PHIM"));
         System.out.println("1. Theo tên phim");
         System.out.println("2. Theo đánh giá (Rating)");
         System.out.println("3. Theo năm phát hành");
@@ -310,7 +312,7 @@ public class AdminView {
             System.out.println("(Chưa có người dùng nào)");
             return;
         }
-        System.out.println("\n--- DANH SÁCH NGƯỜI DÙNG ---");
+        System.out.println("\n" + TextUI.header("DANH SÁCH NGƯỜI DÙNG"));
         for (User user : users) {
             System.out.println("  " + user);
         }
@@ -329,12 +331,12 @@ public class AdminView {
             System.out.println("(Chưa có phim nào để xếp hạng)");
             return;
         }
-        System.out.println("\n--- AUTO RANKING (Xếp hạng tự động) ---");
+        System.out.println("\n" + TextUI.header("AUTO RANKING (Xếp hạng tự động)"));
         System.out.println("Công thức: score = rating×10 + views×0.01 + favourites×0.5");
         for (int i = 0; i < ranked.size(); i++) {
             Movie m = ranked.get(i);
             double score = m.getRating() * 10 + m.getViews() * 0.01 + m.getFavouritesCount() * 0.5;
-            System.out.printf("  #%d. %s — Score: %.2f (Rating: %.1f★ | Views: %d | Fav: %d)\n",
+            System.out.printf("  #%d. %s — Score: %.2f (Rating: %.1f | Views: %d | Fav: %d)\n",
                     i + 1, m.getTitle(), score, m.getRating(), m.getViews(), m.getFavouritesCount());
         }
     }
@@ -345,7 +347,7 @@ public class AdminView {
             System.out.println("(Chưa có thể loại nào)");
             return;
         }
-        System.out.println("\n--- TRENDING CATEGORIES (Thể loại thịnh hành) ---");
+        System.out.println("\n" + TextUI.header("TRENDING CATEGORIES (Thể loại thịnh hành)"));
         for (int i = 0; i < trending.size(); i++) {
             Category cat = trending.get(i);
             long views = movieController.getTotalViewsByCategory(cat.getId());
@@ -370,8 +372,11 @@ public class AdminView {
             return;
         }
         System.out.println("Tìm thấy " + movies.size() + " phim:");
-        for (Movie movie : movies) {
-            System.out.println("  " + formatMovie(movie));
+        for (int i = 0; i < movies.size(); i++) {
+            if (i > 0) {
+                System.out.println();
+            }
+            System.out.println("  " + formatMovie(movies.get(i)));
         }
     }
 }
