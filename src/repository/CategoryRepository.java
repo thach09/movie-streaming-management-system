@@ -1,10 +1,10 @@
 package repository;
 
-import model.Category;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import model.Category;
 
 public class CategoryRepository implements ICategoryRepository {
 
@@ -61,6 +61,9 @@ public class CategoryRepository implements ICategoryRepository {
                         String id = parts[0];
                         String name = parts[1];
                         String description = parts[2];
+                        if (description.trim().isEmpty()) {
+                            description = null; // Khôi phục null thay vì empty string
+                        }
                         boolean isActive = Boolean.parseBoolean(parts[3]);
 
                         // Tạo đối tượng Category và set trạng thái Active
