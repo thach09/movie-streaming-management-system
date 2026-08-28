@@ -3,13 +3,13 @@ package view;
 import controller.CategoryController;
 import controller.CustomerController;
 import controller.MovieController;
+import java.util.List;
+import java.util.Scanner;
 import model.Category;
 import model.Movie;
 import utils.InputValidator;
+import utils.TextUI;
 import utils.ValidationException;
-
-import java.util.List;
-import java.util.Scanner;
 
 /**
  * Menu CLI dành cho Customer — duyệt phim, quản lý Watchlist/Favourite/History,
@@ -35,33 +35,63 @@ public class CustomerView {
     public void showMenu() {
         int choice;
         do {
-            System.out.println("\n╔══════════════════════════════════════╗");
-            System.out.println("║     🎬 CUSTOMER DASHBOARD 🎬        ║");
-            System.out.println("╠══════════════════════════════════════╣");
-            System.out.println("║  1. Duyệt phim                      ║");
-            System.out.println("║  2. Tìm kiếm phim                   ║");
-            System.out.println("║  3. Sắp xếp phim                    ║");
-            System.out.println("║  4. Xem chi tiết phim                ║");
-            System.out.println("║  5. Duyệt theo thể loại             ║");
-            System.out.println("║  6. Quản lý Watchlist                ║");
-            System.out.println("║  7. Quản lý Yêu thích               ║");
-            System.out.println("║  8. Lịch sử xem                     ║");
-            System.out.println("║  9. Xem Auto Ranking                 ║");
-            System.out.println("║  0. Đăng xuất                        ║");
-            System.out.println("╚══════════════════════════════════════╝");
-            choice = InputValidator.readInt(scanner, "Chọn chức năng: ", 0, 9);
+            System.out.println("\n" + TextUI.menuBox("CUSTOMER DASHBOARD", new String[]{
+                    "  1. Khám phá phim",
+                    "  2. Thư viện của tôi",
+                    "  0. Đăng xuất"
+            }));
+            choice = InputValidator.readInt(scanner, "Chọn chức năng: ", 0, 2);
+
+            switch (choice) {
+                case 1: browseMenu(); break;
+                case 2: libraryMenu(); break;
+                case 0: System.out.println("Đã đăng xuất."); break;
+            }
+        } while (choice != 0);
+    }
+
+    // ===================== KHÁM PHÁ PHIM =====================
+
+    private void browseMenu() {
+        int choice;
+        do {
+            System.out.println("\n" + TextUI.menuBox("KHÁM PHÁ PHIM", new String[]{
+                    "  1. Duyệt tất cả phim",
+                    "  2. Tìm kiếm phim",
+                    "  3. Sắp xếp phim",
+                    "  4. Duyệt theo thể loại",
+                    "  5. Bảng xếp hạng phim",
+                    "  0. Quay lại"
+            }));
+            choice = InputValidator.readInt(scanner, "Chọn chức năng: ", 0, 5);
 
             switch (choice) {
                 case 1: browseMovies(); break;
                 case 2: searchMovieMenu(); break;
                 case 3: sortMovieMenu(); break;
-                case 4: viewMovieDetail(); break;
-                case 5: browseByCategory(); break;
-                case 6: watchlistMenu(); break;
-                case 7: favouriteMenu(); break;
-                case 8: watchHistoryMenu(); break;
-                case 9: viewAutoRanking(); break;
-                case 0: System.out.println("Đã đăng xuất."); break;
+                case 4: browseByCategory(); break;
+                case 5: viewAutoRanking(); break;
+            }
+        } while (choice != 0);
+    }
+
+    // ===================== THƯ VIỆN CỦA TÔI =====================
+
+    private void libraryMenu() {
+        int choice;
+        do {
+            System.out.println("\n" + TextUI.menuBox("THƯ VIỆN CỦA TÔI", new String[]{
+                    "  1. Danh sách chờ xem ",
+                    "  2. Danh sách yêu thích ",
+                    "  3. Lịch sử xem ",
+                    "  0. Quay lại "
+            }));
+            choice = InputValidator.readInt(scanner, "Chọn chức năng: ", 0, 3);
+
+            switch (choice) {
+                case 1: watchlistMenu(); break;
+                case 2: favouriteMenu(); break;
+                case 3: watchHistoryMenu(); break;
             }
         } while (choice != 0);
     }
@@ -74,26 +104,37 @@ public class CustomerView {
             System.out.println("(Chưa có phim nào)");
             return;
         }
-        System.out.println("\n--- DANH SÁCH PHIM ĐANG CHIẾU ---");
-        for (Movie movie : activeMovies) {
-            System.out.println("  " + formatMovie(movie));
+        System.out.println("\n" + TextUI.header("DANH SÁCH PHIM ĐANG CHIẾU"));
+        for (int i = 0; i < activeMovies.size(); i++) {
+            if (i > 0) {
+                System.out.println();
+            }
+            System.out.printf("  %d. %s%n", i + 1, formatMovie(activeMovies.get(i)));
         }
+        promptViewDetail();
     }
 
     // ===================== VIEW MOVIE DETAIL =====================
 
-    private void viewMovieDetail() {
-        String id = InputValidator.readString(scanner, "Nhập mã phim cần xem: ");
+    private void promptViewDetail() {
+        System.out.print("Nhập mã phim để xem chi tiết (Enter để bỏ qua): ");
+        String id = scanner.nextLine().trim();
+        if (!id.isEmpty()) {
+            showMovieDetail(id);
+        }
+    }
+
+    private void showMovieDetail(String id) {
         Movie movie = movieController.findById(id);
         if (movie == null) {
-            System.out.println("❌ Không tìm thấy phim!");
+            System.out.println("Không tìm thấy phim!");
             return;
         }
         if (!movie.isActive()) {
-            System.out.println("❌ Phim này đã bị gỡ khỏi hệ thống.");
+            System.out.println("Phim này đã bị gỡ khỏi hệ thống.");
             return;
         }
-        System.out.println("\n╔══ CHI TIẾT PHIM ══════════════════════╗");
+        System.out.println("\n" + TextUI.header("CHI TIẾT PHIM"));
         System.out.println("  Mã phim    : " + movie.getId());
         System.out.println("  Tên phim   : " + movie.getTitle());
         Category cat = categoryController.findById(movie.getCategoryId());
@@ -102,10 +143,9 @@ public class CustomerView {
         System.out.println("  Đạo diễn   : " + movie.getDirector());
         System.out.println("  Diễn viên  : " + movie.getActors());
         System.out.println("  Năm        : " + movie.getReleaseYear());
-        System.out.printf("  Rating     : %.1f★\n", movie.getRating());
+        System.out.printf("  Rating     : %.1f\n", movie.getRating());
         System.out.println("  Lượt xem   : " + movie.getViews());
         System.out.println("  Yêu thích  : " + movie.getFavouritesCount());
-        System.out.println("╚══════════════════════════════════════╝");
     }
 
     // ===================== BROWSE BY CATEGORY =====================
@@ -116,7 +156,7 @@ public class CustomerView {
             System.out.println("(Chưa có thể loại nào)");
             return;
         }
-        System.out.println("\n--- CÁC THỂ LOẠI ---");
+        System.out.println("\n" + TextUI.header("CÁC THỂ LOẠI"));
         for (Category cat : categories) {
             System.out.println("  [" + cat.getId() + "] " + cat.getName());
         }
@@ -128,7 +168,7 @@ public class CustomerView {
     // ===================== SEARCH =====================
 
     private void searchMovieMenu() {
-        System.out.println("\n--- TÌM KIẾM PHIM ---");
+        System.out.println("\n" + TextUI.header("TÌM KIẾM PHIM"));
         System.out.println("1. Theo tên phim");
         System.out.println("2. Theo diễn viên");
         System.out.println("3. Theo đạo diễn");
@@ -161,7 +201,7 @@ public class CustomerView {
     // ===================== SORT =====================
 
     private void sortMovieMenu() {
-        System.out.println("\n--- SẮP XẾP PHIM ---");
+        System.out.println("\n" + TextUI.header("SẮP XẾP PHIM"));
         System.out.println("1. Theo tên phim");
         System.out.println("2. Theo đánh giá (Rating)");
         System.out.println("3. Theo năm phát hành");
@@ -188,14 +228,14 @@ public class CustomerView {
     private void watchlistMenu() {
         int choice;
         do {
-            System.out.println("\n--- DANH SÁCH CHỜ XEM (WATCHLIST) ---");
+            System.out.println("\n" + TextUI.header("DANH SÁCH CHỜ XEM (WATCHLIST)"));
             System.out.println("1. Thêm phim vào Watchlist");
             System.out.println("2. Xóa phim khỏi Watchlist");
             System.out.println("3. Xem Watchlist hiện tại");
             String undoLabel = customerController.canUndo() ? "(Có thể Undo)" : "(Trống)";
             String redoLabel = customerController.canRedo() ? "(Có thể Redo)" : "(Trống)";
-            System.out.println("4. ↩ Undo " + undoLabel);
-            System.out.println("5. ↪ Redo " + redoLabel);
+            System.out.println("4. Undo " + undoLabel);
+            System.out.println("5. Redo " + redoLabel);
             System.out.println("0. Quay lại");
             choice = InputValidator.readInt(scanner, "Chọn: ", 0, 5);
 
@@ -213,12 +253,12 @@ public class CustomerView {
         try {
             String movieId = InputValidator.readString(scanner, "Nhập mã phim: ");
             if (customerController.addToWatchlist(customerId, movieId)) {
-                System.out.println("✅ Đã thêm phim '" + movieId + "' vào Watchlist!");
+                System.out.println("Đã thêm phim '" + movieId + "' vào Watchlist!");
             } else {
-                System.out.println("❌ Lỗi ghi file!");
+                System.out.println("Lỗi ghi file!");
             }
         } catch (ValidationException e) {
-            System.out.println("❌ " + e.getMessage());
+            System.out.println(e.getMessage());
         }
     }
 
@@ -226,12 +266,12 @@ public class CustomerView {
         try {
             String movieId = InputValidator.readString(scanner, "Nhập mã phim cần xóa: ");
             if (customerController.removeFromWatchlist(customerId, movieId)) {
-                System.out.println("✅ Đã xóa phim '" + movieId + "' khỏi Watchlist!");
+                System.out.println("Đã xóa phim '" + movieId + "' khỏi Watchlist!");
             } else {
-                System.out.println("❌ Lỗi ghi file!");
+                System.out.println("Lỗi ghi file!");
             }
         } catch (ValidationException e) {
-            System.out.println("❌ " + e.getMessage());
+            System.out.println(e.getMessage());
         }
     }
 
@@ -242,7 +282,7 @@ public class CustomerView {
                 System.out.println("  (Watchlist trống)");
                 return;
             }
-            System.out.println("\n--- WATCHLIST CỦA BẠN ---");
+            System.out.println("\n" + TextUI.header("WATCHLIST CỦA BẠN"));
             for (int i = 0; i < watchlist.size(); i++) {
                 String movieId = watchlist.get(i);
                 Movie movie = movieController.findById(movieId);
@@ -250,31 +290,31 @@ public class CustomerView {
                 System.out.printf("  %d. [%s] %s\n", i + 1, movieId, title);
             }
         } catch (ValidationException e) {
-            System.out.println("❌ " + e.getMessage());
+            System.out.println(e.getMessage());
         }
     }
 
     private void undoWatchlist() {
         try {
             if (customerController.undoWatchlist(customerId)) {
-                System.out.println("✅ Undo thành công!");
+                System.out.println("Undo thành công!");
             } else {
-                System.out.println("❌ Lỗi ghi file!");
+                System.out.println("Lỗi ghi file!");
             }
         } catch (ValidationException e) {
-            System.out.println("❌ " + e.getMessage());
+            System.out.println(e.getMessage());
         }
     }
 
     private void redoWatchlist() {
         try {
             if (customerController.redoWatchlist(customerId)) {
-                System.out.println("✅ Redo thành công!");
+                System.out.println("Redo thành công!");
             } else {
-                System.out.println("❌ Lỗi ghi file!");
+                System.out.println("Lỗi ghi file!");
             }
         } catch (ValidationException e) {
-            System.out.println("❌ " + e.getMessage());
+            System.out.println(e.getMessage());
         }
     }
 
@@ -283,7 +323,7 @@ public class CustomerView {
     private void favouriteMenu() {
         int choice;
         do {
-            System.out.println("\n--- DANH SÁCH YÊU THÍCH (FAVOURITES) ---");
+            System.out.println("\n" + TextUI.header("DANH SÁCH YÊU THÍCH (FAVOURITES)"));
             System.out.println("1. Thêm phim vào Yêu thích");
             System.out.println("2. Xóa phim khỏi Yêu thích");
             System.out.println("3. Xem danh sách Yêu thích");
@@ -302,12 +342,12 @@ public class CustomerView {
         try {
             String movieId = InputValidator.readString(scanner, "Nhập mã phim: ");
             if (customerController.addToFavourites(customerId, movieId)) {
-                System.out.println("✅ Đã thêm phim '" + movieId + "' vào Yêu thích!");
+                System.out.println("Đã thêm phim '" + movieId + "' vào Yêu thích!");
             } else {
-                System.out.println("❌ Lỗi ghi file!");
+                System.out.println("Lỗi ghi file!");
             }
         } catch (ValidationException e) {
-            System.out.println("❌ " + e.getMessage());
+            System.out.println(e.getMessage());
         }
     }
 
@@ -315,12 +355,12 @@ public class CustomerView {
         try {
             String movieId = InputValidator.readString(scanner, "Nhập mã phim cần xóa: ");
             if (customerController.removeFromFavourites(customerId, movieId)) {
-                System.out.println("✅ Đã xóa phim '" + movieId + "' khỏi Yêu thích!");
+                System.out.println("Đã xóa phim '" + movieId + "' khỏi Yêu thích!");
             } else {
-                System.out.println("❌ Lỗi ghi file!");
+                System.out.println("Lỗi ghi file!");
             }
         } catch (ValidationException e) {
-            System.out.println("❌ " + e.getMessage());
+            System.out.println(e.getMessage());
         }
     }
 
@@ -331,7 +371,7 @@ public class CustomerView {
                 System.out.println("  (Danh sách yêu thích trống)");
                 return;
             }
-            System.out.println("\n--- DANH SÁCH YÊU THÍCH CỦA BẠN ---");
+            System.out.println("\n" + TextUI.header("DANH SÁCH YÊU THÍCH CỦA BẠN"));
             for (int i = 0; i < favourites.size(); i++) {
                 String movieId = favourites.get(i);
                 Movie movie = movieController.findById(movieId);
@@ -339,7 +379,7 @@ public class CustomerView {
                 System.out.printf("  %d. [%s] %s\n", i + 1, movieId, title);
             }
         } catch (ValidationException e) {
-            System.out.println("❌ " + e.getMessage());
+            System.out.println(e.getMessage());
         }
     }
 
@@ -348,7 +388,7 @@ public class CustomerView {
     private void watchHistoryMenu() {
         int choice;
         do {
-            System.out.println("\n--- LỊCH SỬ XEM ---");
+            System.out.println("\n" + TextUI.header("LỊCH SỬ XEM"));
             System.out.println("1. Xem phim (Thêm vào lịch sử)");
             System.out.println("2. Xem lịch sử đã xem");
             System.out.println("0. Quay lại");
@@ -365,12 +405,12 @@ public class CustomerView {
         try {
             String movieId = InputValidator.readString(scanner, "Nhập mã phim muốn xem: ");
             if (customerController.addToWatchHistory(customerId, movieId)) {
-                System.out.println("✅ Đang phát phim '" + movieId + "'... Đã ghi nhận lịch sử!");
+                System.out.println("Đang phát phim '" + movieId + "'... Đã ghi nhận lịch sử!");
             } else {
-                System.out.println("❌ Lỗi ghi file!");
+                System.out.println("Lỗi ghi file!");
             }
         } catch (ValidationException e) {
-            System.out.println("❌ " + e.getMessage());
+            System.out.println(e.getMessage());
         }
     }
 
@@ -381,7 +421,7 @@ public class CustomerView {
                 System.out.println("  (Chưa xem phim nào)");
                 return;
             }
-            System.out.println("\n--- LỊCH SỬ XEM CỦA BẠN ---");
+            System.out.println("\n" + TextUI.header("LỊCH SỬ XEM CỦA BẠN"));
             for (int i = 0; i < history.size(); i++) {
                 String movieId = history.get(i);
                 Movie movie = movieController.findById(movieId);
@@ -389,7 +429,7 @@ public class CustomerView {
                 System.out.printf("  %d. [%s] %s\n", i + 1, movieId, title);
             }
         } catch (ValidationException e) {
-            System.out.println("❌ " + e.getMessage());
+            System.out.println(e.getMessage());
         }
     }
 
@@ -401,10 +441,10 @@ public class CustomerView {
             System.out.println("(Chưa có phim nào)");
             return;
         }
-        System.out.println("\n--- 🏆 BẢNG XẾP HẠNG PHIM 🏆 ---");
+        System.out.println("\n" + TextUI.header("BẢNG XẾP HẠNG PHIM"));
         for (int i = 0; i < ranked.size(); i++) {
             Movie m = ranked.get(i);
-            System.out.printf("  #%d. %s (%.1f★ | %d views | %d fav)\n",
+            System.out.printf("  #%d. %s (%.1f | %d views | %d fav)\n",
                     i + 1, m.getTitle(), m.getRating(), m.getViews(), m.getFavouritesCount());
         }
     }
@@ -426,8 +466,12 @@ public class CustomerView {
             return;
         }
         System.out.println("Tìm thấy " + movies.size() + " phim:");
-        for (Movie movie : movies) {
-            System.out.println("  " + formatMovie(movie));
+        for (int i = 0; i < movies.size(); i++) {
+            if (i > 0) {
+                System.out.println();
+            }
+            System.out.printf("  %d. %s%n", i + 1, formatMovie(movies.get(i)));
         }
+        promptViewDetail();
     }
 }
