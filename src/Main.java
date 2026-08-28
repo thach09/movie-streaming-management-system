@@ -1,17 +1,16 @@
 import controller.CategoryController;
+import controller.CustomerController;
 import controller.MovieController;
 import controller.UserController;
-import controller.CustomerController;
+import java.io.PrintStream;
+import java.util.Scanner;
+import model.User;
 import repository.CategoryRepository;
 import repository.MovieRepository;
 import repository.UserRepository;
-import model.User;
-import view.LoginView;
 import view.AdminView;
 import view.CustomerView;
-
-import java.io.PrintStream;
-import java.util.Scanner;
+import view.LoginView;
 
 public class Main {
     public static void main(String[] args) throws Exception {
