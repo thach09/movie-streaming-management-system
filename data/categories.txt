@@ -1,0 +1,6 @@
+CAT01|Hành Động|Phim hành động, cháy nổ, rượt đuổi|true
+CAT02|Tình Cảm|Phim tình cảm lãng mạn|true
+CAT03|Kinh Dị|Phim kinh dị, rùng rợn|true
+CAT04|Hài Hước|Phim hài, giải trí nhẹ nhàng|true
+CAT05|Khoa Học Viễn Tưởng|Phim sci-fi, vũ trụ, công nghệ|true
+CAT06|Hoạt hình|Phim hoạt hình, giải trí|true 
