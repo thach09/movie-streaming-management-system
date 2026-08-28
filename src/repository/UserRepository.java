@@ -4,6 +4,7 @@ import model.Admin;
 import model.Customer;
 import model.User;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,7 +29,7 @@ public class UserRepository implements IUserRepository {
             file.getParentFile().mkdirs();
         }
 
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+        try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
 
             for (User user : usersList) { // Duyệt qua từng thư mục User 
                 // User Admin or Customer
@@ -84,7 +85,7 @@ public class UserRepository implements IUserRepository {
             return userList;
         }
         
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
             String line;
             while ((line = br.readLine()) != null) {
                 try {
