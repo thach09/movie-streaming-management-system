@@ -132,6 +132,9 @@ public class MovieController {
         if (movie == null) {
             throw new ValidationException("Không tìm thấy phim có mã '" + id + "'");
         }
+        if (!movie.isActive()) {
+            throw new ValidationException("Phim có mã '" + id + "' đã bị xóa trước đó!");
+        }
         movie.setActive(false); // Soft Delete
         return movieRepository.saveAll(movieList);
     }
