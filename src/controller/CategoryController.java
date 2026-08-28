@@ -28,7 +28,22 @@ public class CategoryController {
                 throw new ValidationException("Mã danh mục '" + id + "' đã tồn tại!");
             }
         }
+
+        // Kiểm tra trùng Tên danh mục (case-insensitive)
+        for (Category cat : categoryList) {
+            if (cat.getName().equalsIgnoreCase(name)) {
+                throw new ValidationException("Tên danh mục '" + name + "' đã tồn tại!");
+            }
+        }
         
+        // ID và Mô tả không được trùng với Tên danh mục
+        if (id.equalsIgnoreCase(name)) {
+            throw new ValidationException("Mã danh mục không được trùng với tên danh mục!");
+        }
+        if (description != null && description.equalsIgnoreCase(name)) {
+            throw new ValidationException("Mô tả không được trùng với tên danh mục!");
+        }
+
         Category newCategory = new Category(id, name, description);
         categoryList.add(newCategory);
         return categoryRepository.saveAll(categoryList);
@@ -39,7 +54,22 @@ public class CategoryController {
         if (category == null) {
             throw new ValidationException("Không tìm thấy danh mục có ID '" + id + "'");
         }
+
+        // Kiểm tra trùng Tên danh mục với danh mục khác (loại trừ chính mình)
+        for (Category cat : categoryList) {
+            if (!cat.getId().equalsIgnoreCase(id) && cat.getName().equalsIgnoreCase(newName)) {
+                throw new ValidationException("Tên danh mục '" + newName + "' đã tồn tại ở danh mục khác!");
+            }
+        }
         
+        // Tên và Mô tả không được trùng với mã danh mục / tên danh mục
+        if (category.getId().equalsIgnoreCase(newName)) {
+            throw new ValidationException("Tên danh mục không được trùng với mã danh mục!");
+        }
+        if (newDescription != null && newDescription.equalsIgnoreCase(newName)) {
+            throw new ValidationException("Mô tả không được trùng với tên danh mục!");
+        }
+
         // 1. Tạo bản sao tạm để test Validation
         Category temp = new Category(category);
         temp.setName(newName);
@@ -56,6 +86,9 @@ public class CategoryController {
         Category category = findReferenceById(id);
         if (category == null) {
             throw new ValidationException("Không tìm thấy danh mục có ID '" + id + "'");
+        }
+        if (!category.isActive()) {
+            throw new ValidationException("Danh mục có ID '" + id + "' đã bị xóa trước đó!");
         }
         if (movieController != null && movieController.existsActiveMovieInCategory(id)) {
             throw new ValidationException("Không thể xóa danh mục vì còn phim đang active tham chiếu tới!");
