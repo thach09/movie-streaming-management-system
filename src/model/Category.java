@@ -82,10 +82,11 @@ public class Category {
         return "Category{" +
                 "id='" + id + '\'' +
                 ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
+                ", description='" + (description != null ? description : "(không có)") + '\'' +
                 ", isActive=" + isActive +
                 '}';
     }
+
 
     @Override
     public boolean equals(Object o) {
