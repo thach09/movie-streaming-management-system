@@ -169,7 +169,7 @@ public class Movie {
     
     @Override
     public String toString() {
-        return String.format("Phim [ID: %s | Tên: '%s' | Mã Thể loại: %s | Đạo diễn: %s | Diễn viên: %s | Năm: %d | Rating: %.1f★ | Lượt xem: %d | Yêu thích: %d | Trạng thái: %s]",
+        return String.format("Phim [ID: %s | Tên: '%s' | Mã Thể loại: %s | Đạo diễn: %s | Diễn viên: %s | Năm: %d | Rating: %.1f | Lượt xem: %d | Yêu thích: %d | Trạng thái: %s]",
                 id, title, categoryId, director, actors, releaseYear, rating, views, favouritesCount, (isActive ? "ACTIVE" : "INACTIVE"));
     }
 
