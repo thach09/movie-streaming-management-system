@@ -2,6 +2,7 @@ package repository;
 
 import model.Movie;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +18,7 @@ public class MovieRepository implements IMovieRepository {
             file.getParentFile().mkdirs(); 
         }
 
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+        try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
             for (Movie movie : movieList) { // Duyệt qua từng Movie
                 StringBuilder line = new StringBuilder();
                 
@@ -53,7 +54,7 @@ public class MovieRepository implements IMovieRepository {
             return movieList;
         }
 
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
             String line;
             while ((line = br.readLine()) != null) {
                 try { 
