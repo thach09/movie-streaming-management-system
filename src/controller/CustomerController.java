@@ -33,19 +33,19 @@ public class CustomerController {
      */
     public boolean addToWatchlist(String customerId, String movieId) throws ValidationException {
         Customer customer = userController.findActiveCustomerReferenceForController(customerId);
-        validateActiveMovieExists(movieId);
+        String canonicalId = resolveActiveMovieId(movieId);
 
         List<String> watchlist = customer.getWatchlist(); // Lấy bản sao
-        if (watchlist.contains(movieId)) {
-            throw new ValidationException("Phim '" + movieId + "' đã có trong danh sách chờ xem!");
+        if (watchlist.contains(canonicalId)) {
+            throw new ValidationException("Phim '" + canonicalId + "' đã có trong danh sách chờ xem!");
         }
-        watchlist.add(movieId);
+        watchlist.add(canonicalId);
         customer.setWatchlist(watchlist); // Gán lại bản sao đã sửa
         boolean saved = userController.persistUserChanges();
 
         // Ghi nhận hành động vào Undo Stack + xóa Redo Stack (hành động mới phá chuỗi redo)
         if (saved) {
-            undoStack.push(new WatchlistAction(WatchlistAction.ActionType.ADD, movieId));
+            undoStack.push(new WatchlistAction(WatchlistAction.ActionType.ADD, canonicalId));
             redoStack.clear();
         }
         return saved;
@@ -57,17 +57,18 @@ public class CustomerController {
      */
     public boolean removeFromWatchlist(String customerId, String movieId) throws ValidationException {
         Customer customer = userController.findActiveCustomerReferenceForController(customerId);
+        String canonicalId = resolveMovieId(movieId);
 
         List<String> watchlist = customer.getWatchlist();
-        if (!watchlist.remove(movieId)) {
-            throw new ValidationException("Phim '" + movieId + "' không có trong danh sách chờ xem!");
+        if (!watchlist.remove(canonicalId)) {
+            throw new ValidationException("Phim '" + canonicalId + "' không có trong danh sách chờ xem!");
         }
         customer.setWatchlist(watchlist);
         boolean saved = userController.persistUserChanges();
 
         // Ghi nhận hành động vào Undo Stack + xóa Redo Stack
         if (saved) {
-            undoStack.push(new WatchlistAction(WatchlistAction.ActionType.REMOVE, movieId));
+            undoStack.push(new WatchlistAction(WatchlistAction.ActionType.REMOVE, canonicalId));
             redoStack.clear();
         }
         return saved;
@@ -81,18 +82,18 @@ public class CustomerController {
      */
     public boolean addToFavourites(String customerId, String movieId) throws ValidationException {
         Customer customer = userController.findActiveCustomerReferenceForController(customerId);
-        validateActiveMovieExists(movieId);
+        String canonicalId = resolveActiveMovieId(movieId);
 
         List<String> favourites = customer.getFavouriteList();
-        if (favourites.contains(movieId)) {
-            throw new ValidationException("Phim '" + movieId + "' đã có trong danh sách yêu thích!");
+        if (favourites.contains(canonicalId)) {
+            throw new ValidationException("Phim '" + canonicalId + "' đã có trong danh sách yêu thích!");
         }
-        favourites.add(movieId);
+        favourites.add(canonicalId);
         customer.setFavouriteList(favourites);
 
         // Lưu ý: Nếu increment thất bại (hiếm khi xảy ra vì movie đã validate active ở trên),
         // Customer vẫn được cập nhật — chấp nhận được vì CLI đơn luồng, không có race condition.
-        movieController.incrementFavouritesCount(movieId);
+        movieController.incrementFavouritesCount(canonicalId);
 
         return userController.persistUserChanges();
     }
@@ -103,15 +104,16 @@ public class CustomerController {
      */
     public boolean removeFromFavourites(String customerId, String movieId) throws ValidationException {
         Customer customer = userController.findActiveCustomerReferenceForController(customerId);
+        String canonicalId = resolveMovieId(movieId);
 
         List<String> favourites = customer.getFavouriteList();
-        if (!favourites.remove(movieId)) {
-            throw new ValidationException("Phim '" + movieId + "' không có trong danh sách yêu thích!");
+        if (!favourites.remove(canonicalId)) {
+            throw new ValidationException("Phim '" + canonicalId + "' không có trong danh sách yêu thích!");
         }
         customer.setFavouriteList(favourites);
 
         // Giảm số lượt yêu thích đang active trên Movie (Phương án A - Current State)
-        movieController.decrementFavouritesCount(movieId);
+        movieController.decrementFavouritesCount(canonicalId);
 
         return userController.persistUserChanges();
     }
@@ -125,16 +127,16 @@ public class CustomerController {
      */
     public boolean addToWatchHistory(String customerId, String movieId) throws ValidationException {
         Customer customer = userController.findActiveCustomerReferenceForController(customerId);
-        validateActiveMovieExists(movieId);
+        String canonicalId = resolveActiveMovieId(movieId);
 
         List<String> history = customer.getWatchHistory();
-        history.add(movieId); // Cho phép trùng — xem lại nhiều lần
+        history.add(canonicalId); // Cho phép trùng — xem lại nhiều lần
         customer.setWatchHistory(history);
 
         // Lưu ý: Nếu increment thất bại (hiếm khi xảy ra vì movie đã validate active ở trên),
         // Customer vẫn được cập nhật — chấp nhận được vì CLI đơn luồng, không có race condition.
         // Đã cân nhắc và quyết định không rollback (xem quyết định Nhóm 2).
-        movieController.incrementViews(movieId);
+        movieController.incrementViews(canonicalId);
 
         return userController.persistUserChanges();
     }
@@ -270,5 +272,23 @@ public class CustomerController {
         if (!movie.isActive()) {
             throw new ValidationException("Phim có mã '" + movieId + "' đã bị gỡ khỏi hệ thống!");
         }
+    }
+
+    /**
+     * Validate phim tồn tại + active, rồi trả về ID chuẩn của phim.
+     * Chống lệch case-sensitive khi lưu vào Watchlist/Favourites/History.
+     */
+    private String resolveActiveMovieId(String movieId) throws ValidationException {
+        validateActiveMovieExists(movieId);
+        return movieController.findById(movieId).getId();
+    }
+
+    /**
+     * Trả về ID chuẩn của phim nếu phim tồn tại (kể cả inactive).
+     * Nếu không tồn tại thì trả nguyên input để phép remove báo lỗi bình thường.
+     */
+    private String resolveMovieId(String movieId) {
+        Movie movie = movieController.findById(movieId);
+        return (movie != null) ? movie.getId() : movieId;
     }
 }
