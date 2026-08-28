@@ -2,6 +2,7 @@ package repository;
 
 import model.Category;
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +21,7 @@ public class CategoryRepository implements ICategoryRepository {
         }
 
         // Try-with-resources: mở BufferedWriter để ghi file (tự động đóng file)
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(file))) {
+        try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8))) {
             for (Category cat : categoriesList) {
                 // Ghép các thuộc tính lại thành một chuỗi và ngăn cách bởi DELIMITER |
                               String desc = cat.getDescription();
@@ -48,7 +49,7 @@ public class CategoryRepository implements ICategoryRepository {
             return categoriesList;
         }
 
-        try (BufferedReader br = new BufferedReader(new FileReader(file))) {
+        try (BufferedReader br = new BufferedReader(new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
             String line;
             while ((line= br.readLine()) != null) { 
                 // Graceful Degradation
