@@ -1,8 +1,8 @@
 package model;
 
-import utils.ValidationException;
 import java.util.ArrayList;
 import java.util.List;
+import utils.ValidationException;
 
 public class Customer extends User {
     private List<String> watchlist;
