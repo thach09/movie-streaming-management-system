@@ -3,6 +3,7 @@ package view;
 import controller.UserController;
 import model.User;
 import utils.InputValidator;
+import utils.TextUI;
 import utils.ValidationException;
 
 import java.util.Scanner;
@@ -27,13 +28,11 @@ public class LoginView {
     public User showMenu() {
         int choice;
         do {
-            System.out.println("\n╔══════════════════════════════════════╗");
-            System.out.println("║  🎬 MOVIE STREAMING MANAGEMENT 🎬   ║");
-            System.out.println("╠══════════════════════════════════════╣");
-            System.out.println("║  1. Đăng nhập                        ║");
-            System.out.println("║  2. Đăng ký tài khoản mới            ║");
-            System.out.println("║  0. Thoát chương trình               ║");
-            System.out.println("╚══════════════════════════════════════╝");
+            System.out.println("\n" + TextUI.menuBox("MOVIE STREAMING MANAGEMENT", new String[]{
+                    "  1. Đăng nhập",
+                    "  2. Đăng ký tài khoản mới",
+                    "  0. Thoát chương trình"
+            }));
             choice = InputValidator.readInt(scanner, "Chọn chức năng: ", 0, 2);
 
             switch (choice) {
@@ -45,7 +44,7 @@ public class LoginView {
                     register();
                     break;
                 case 0:
-                    System.out.println("Tạm biệt! 👋");
+                    System.out.println("Tạm biệt!");
                     return null;
             }
         } while (true);
@@ -56,17 +55,17 @@ public class LoginView {
             String username = InputValidator.readString(scanner, "Tên đăng nhập: ");
             String password = InputValidator.readString(scanner, "Mật khẩu: ");
             User user = userController.login(username, password);
-            System.out.println("✅ Đăng nhập thành công! Xin chào " + user.getFullName() + " [" + user.getRole() + "]");
+            System.out.println("Đăng nhập thành công! Xin chào " + user.getFullName() + " [" + user.getRole() + "]");
             return user;
         } catch (ValidationException e) {
-            System.out.println("❌ " + e.getMessage());
+            System.out.println(e.getMessage());
             return null;
         }
     }
 
     private void register() {
         try {
-            System.out.println("\n--- ĐĂNG KÝ TÀI KHOẢN MỚI ---");
+            System.out.println("\n" + TextUI.header("ĐĂNG KÝ TÀI KHOẢN MỚI"));
             String id = InputValidator.readString(scanner, "Nhập ID: ");
             String username = InputValidator.readString(scanner, "Nhập tên đăng nhập: ");
             String password = InputValidator.readString(scanner, "Nhập mật khẩu (≥6 ký tự): ");
@@ -74,12 +73,12 @@ public class LoginView {
             String email = InputValidator.readString(scanner, "Nhập email: ");
 
             if (userController.register(id, username, password, fullName, email)) {
-                System.out.println("✅ Đăng ký thành công! Vui lòng đăng nhập.");
+                System.out.println("Đăng ký thành công! Vui lòng đăng nhập.");
             } else {
-                System.out.println("❌ Lỗi ghi file!");
+                System.out.println("Lỗi ghi file!");
             }
         } catch (ValidationException e) {
-            System.out.println("❌ " + e.getMessage());
+            System.out.println(e.getMessage());
         }
     }
 }
