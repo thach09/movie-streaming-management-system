@@ -264,8 +264,8 @@ public class CustomerController {
      * percent >= 100: coi là xem xong -> xóa khỏi continueWatching (nếu có),
      *   đồng thời ghi nhận vào Watch History + tăng views (gọi lại addToWatchHistory
      *   nội bộ để tái sử dụng logic đã có).
-     * 0 < percent < 100: thêm mới hoặc cập nhật entry tương ứng trong continueWatching.
-     * percent <= 0: xóa entry nếu có (coi như reset), không làm gì thêm.
+     * 0 <= percent < 100: thêm mới hoặc cập nhật entry tương ứng trong continueWatching
+     *   (percent = 0 nghĩa là "đã bắt đầu xem", vẫn hiển thị trong Continue Watching).
      */
     public boolean updateWatchProgress(String customerId, String movieId, int percent) throws ValidationException {
         if (percent < 0 || percent > 100) {
@@ -288,10 +288,10 @@ public class CustomerController {
             customer.setContinueWatching(progressList);
             userController.persistUserChanges();
             return addToWatchHistory(customerId, canonicalId); // Tái sử dụng logic đã có
-        } else if (percent > 0) {
+        } else {
+            // 0 <= percent < 100: thêm mới/cập nhật entry (0% = đã bắt đầu xem, chưa xem xong)
             progressList.add(new WatchProgress(canonicalId, percent));
         }
-        // percent <= 0: đã xóa entry ở trên, không thêm lại
 
         customer.setContinueWatching(progressList);
         return userController.persistUserChanges();
