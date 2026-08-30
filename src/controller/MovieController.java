@@ -139,6 +139,22 @@ public class MovieController {
         return movieRepository.saveAll(movieList);
     }
 
+    public boolean restoreMovie(String id) throws ValidationException {
+        Movie movie = findReferenceById(id);
+        if (movie == null) {
+            throw new ValidationException("Không tìm thấy phim có mã '" + id + "'");
+        }
+        if (movie.isActive()) {
+            throw new ValidationException("Phim có mã '" + id + "' đang hoạt động, không cần khôi phục!");
+        }
+        Category parent = categoryController.findById(movie.getCategoryId());
+        if (parent == null || !parent.isActive()) {
+            throw new ValidationException("Không thể khôi phục phim vì thể loại cha đang bị vô hiệu hóa. Hãy khôi phục thể loại trước!");
+        }
+        movie.setActive(true);
+        return movieRepository.saveAll(movieList);
+    }
+
     // --- CÁC HÀM THỐNG KÊ (AUTO-CALCULATED FIELDS) ---
 
     public boolean incrementViews(String id) {
