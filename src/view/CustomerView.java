@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Scanner;
 import model.Category;
 import model.Movie;
+import model.WatchProgress;
 import utils.InputValidator;
 import utils.TextUI;
 import utils.ValidationException;
@@ -61,9 +62,10 @@ public class CustomerView {
                     "  3. Sắp xếp phim",
                     "  4. Duyệt theo thể loại",
                     "  5. Bảng xếp hạng phim",
+                    "  6. Lọc nâng cao",
                     "  0. Quay lại"
             }));
-            choice = InputValidator.readInt(scanner, "Chọn chức năng: ", 0, 5);
+            choice = InputValidator.readInt(scanner, "Chọn chức năng: ", 0, 6);
 
             switch (choice) {
                 case 1: browseMovies(); break;
@@ -71,6 +73,7 @@ public class CustomerView {
                 case 3: sortMovieMenu(); break;
                 case 4: browseByCategory(); break;
                 case 5: viewAutoRanking(); break;
+                case 6: advancedFilterMenu(); break;
             }
         } while (choice != 0);
     }
@@ -84,14 +87,20 @@ public class CustomerView {
                     "  1. Danh sách chờ xem ",
                     "  2. Danh sách yêu thích ",
                     "  3. Lịch sử xem ",
+                    "  4. Xem tiếp ",
+                    "  5. Phim đã xem gần đây",
+                    "  6. Xuất báo cáo lịch sử xem ",
                     "  0. Quay lại "
             }));
-            choice = InputValidator.readInt(scanner, "Chọn chức năng: ", 0, 3);
+            choice = InputValidator.readInt(scanner, "Chọn chức năng: ", 0, 6);
 
             switch (choice) {
                 case 1: watchlistMenu(); break;
                 case 2: favouriteMenu(); break;
                 case 3: watchHistoryMenu(); break;
+                case 4: viewContinueWatching(); break;
+                case 5: viewRecentlyWatched(); break;
+                case 6: exportWatchHistoryReport(); break;
             }
         } while (choice != 0);
     }
@@ -431,6 +440,133 @@ public class CustomerView {
         } catch (ValidationException e) {
             System.out.println(e.getMessage());
         }
+    }
+
+    // ===================== CONTINUE WATCHING =====================
+
+    private void viewContinueWatching() {
+        try {
+            List<WatchProgress> progressList = customerController.getContinueWatching(customerId);
+            if (progressList.isEmpty()) {
+                System.out.println("  (Chưa có phim đang xem dở)");
+            } else {
+                System.out.println("\n" + TextUI.header("XEM TIẾP (CONTINUE WATCHING)"));
+                for (int i = 0; i < progressList.size(); i++) {
+                    WatchProgress wp = progressList.get(i);
+                    Movie movie = movieController.findById(wp.getMovieId());
+                    String title = (movie != null) ? movie.getTitle() : "(Phim không tồn tại)";
+                    System.out.printf("  %d. [%s] %s — %d%%\n", i + 1, wp.getMovieId(), title, wp.getPercent());
+                }
+            }
+
+            System.out.println("\n1. Cập nhật tiến độ xem");
+            System.out.println("0. Quay lại");
+            int action = InputValidator.readInt(scanner, "Chọn: ", 0, 1);
+            if (action == 1) {
+                updateWatchProgress();
+            }
+        } catch (ValidationException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void updateWatchProgress() {
+        try {
+            String movieId = InputValidator.readString(scanner, "Nhập mã phim: ");
+            int percent = InputValidator.readInt(scanner, "Nhập % đã xem (0-100): ", 0, 100);
+            if (customerController.updateWatchProgress(customerId, movieId, percent)) {
+                if (percent >= 100) {
+                    System.out.println("Đã xem xong phim '" + movieId + "'! Ghi nhận vào lịch sử.");
+                } else if (percent > 0) {
+                    System.out.println("Đã cập nhật tiến độ xem phim '" + movieId + "': " + percent + "%");
+                } else {
+                    System.out.println("Đã xóa tiến độ xem phim '" + movieId + "'.");
+                }
+            } else {
+                System.out.println("Lỗi ghi file!");
+            }
+        } catch (ValidationException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    // ===================== RECENTLY WATCHED =====================
+
+    private void viewRecentlyWatched() {
+        try {
+            List<Movie> recent = customerController.getRecentlyWatched(customerId, 10);
+            if (recent.isEmpty()) {
+                System.out.println("  (Chưa xem phim nào)");
+                return;
+            }
+            System.out.println("\n" + TextUI.header("PHIM ĐÃ XEM GẦN ĐÂY"));
+            for (int i = 0; i < recent.size(); i++) {
+                System.out.printf("  %d. %s\n", i + 1, formatMovie(recent.get(i)));
+            }
+        } catch (ValidationException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    // ===================== EXPORT CSV =====================
+
+    private void exportWatchHistoryReport() {
+        try {
+            String filePath = "exports/watch_history_" + customerId + ".csv";
+            if (customerController.exportWatchHistoryReport(customerId, filePath)) {
+                System.out.println("Xuất báo cáo thành công!");
+                System.out.println("Đường dẫn file: " + filePath);
+            } else {
+                System.out.println("Không có dữ liệu hoặc lỗi khi xuất báo cáo.");
+            }
+        } catch (ValidationException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    // ===================== ADVANCED FILTER =====================
+
+    private void advancedFilterMenu() {
+        System.out.println("\n" + TextUI.header("LỌC NÂNG CAO (Enter để bỏ qua)"));
+
+        System.out.print("Mã thể loại: ");
+        String categoryId = scanner.nextLine().trim();
+        if (categoryId.isEmpty()) categoryId = null;
+
+        System.out.print("Năm phát hành từ: ");
+        String minYearStr = scanner.nextLine().trim();
+        Integer minYear = null;
+        if (!minYearStr.isEmpty()) {
+            try { minYear = Integer.parseInt(minYearStr); }
+            catch (NumberFormatException e) { System.out.println("(Bỏ qua — không phải số)"); }
+        }
+
+        System.out.print("Năm phát hành đến: ");
+        String maxYearStr = scanner.nextLine().trim();
+        Integer maxYear = null;
+        if (!maxYearStr.isEmpty()) {
+            try { maxYear = Integer.parseInt(maxYearStr); }
+            catch (NumberFormatException e) { System.out.println("(Bỏ qua — không phải số)"); }
+        }
+
+        System.out.print("Rating tối thiểu (0.0-10.0): ");
+        String minRatingStr = scanner.nextLine().trim();
+        Double minRating = null;
+        if (!minRatingStr.isEmpty()) {
+            try { minRating = Double.parseDouble(minRatingStr); }
+            catch (NumberFormatException e) { System.out.println("(Bỏ qua — không phải số)"); }
+        }
+
+        System.out.print("Đạo diễn (từ khóa): ");
+        String director = scanner.nextLine().trim();
+        if (director.isEmpty()) director = null;
+
+        System.out.print("Diễn viên (từ khóa): ");
+        String actor = scanner.nextLine().trim();
+        if (actor.isEmpty()) actor = null;
+
+        List<Movie> results = movieController.advancedFilter(categoryId, minYear, maxYear, minRating, director, actor);
+        printMovieResults(results);
     }
 
     // ===================== RANKING =====================
