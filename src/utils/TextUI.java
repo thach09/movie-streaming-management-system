@@ -1,5 +1,9 @@
 package utils;
 
+import model.Category;
+import java.util.List;
+import java.util.Scanner;
+
 /**
  * Tiện ích dựng giao diện CLI dạng khung (box) với căn lề đúng theo
  * "độ rộng hiển thị" của từng ký tự (emoji = 2 cột, dấu kết hợp = 0).
@@ -169,5 +173,48 @@ public final class TextUI {
             sb.append(value);
         }
         return sb.toString();
+    }
+
+    /**
+     * Hiển thị danh sách Category đang active, đánh số 1..n, đọc lựa chọn từ Scanner,
+     * trả về Category ID tương ứng (hoặc null nếu người dùng chọn 0/cancel).
+     * Method này CHỈ hiển thị và đọc input — không tự lấy dữ liệu từ Repository.
+     */
+    public static String selectCategoryByNumber(List<Category> activeCategories, Scanner sc) {
+        return selectCategoryByNumber(activeCategories, sc, "Quay lại");
+    }
+
+    /**
+     * Hiển thị danh sách Category đang active, đánh số 1..n, đọc lựa chọn từ Scanner,
+     * trả về Category ID tương ứng (hoặc null nếu người dùng chọn 0/cancel).
+     * cancelLabel: nhãn hiển thị cho lựa chọn 0 (vd "Quay lại" hoặc "Bỏ qua").
+     */
+    public static String selectCategoryByNumber(List<Category> activeCategories, Scanner sc, String cancelLabel) {
+        if (activeCategories == null || activeCategories.isEmpty()) {
+            System.out.println("(Không có thể loại nào đang hoạt động)");
+            return null;
+        }
+        while (true) {
+            System.out.println("Chọn thể loại:");
+            for (int i = 0; i < activeCategories.size(); i++) {
+                System.out.println("  " + (i + 1) + ". " + activeCategories.get(i).getName()
+                        + " (" + activeCategories.get(i).getId() + ")");
+            }
+            System.out.println("  0. " + cancelLabel);
+            System.out.print("Nhập số thứ tự: ");
+            String input = sc.nextLine().trim();
+            try {
+                int choice = Integer.parseInt(input);
+                if (choice == 0) {
+                    return null;
+                }
+                if (choice >= 1 && choice <= activeCategories.size()) {
+                    return activeCategories.get(choice - 1).getId();
+                }
+            } catch (NumberFormatException e) {
+                // rơi xuống thông báo lỗi bên dưới
+            }
+            System.out.println("Lựa chọn không hợp lệ, vui lòng nhập lại!");
+        }
     }
 }
