@@ -83,6 +83,18 @@ public class CategoryController {
         return categoryRepository.saveAll(categoryList);
     }
 
+    public boolean restoreCategory(String id) throws ValidationException {
+        Category category = findReferenceById(id);
+        if (category == null) {
+            throw new ValidationException("Không tìm thấy danh mục có ID '" + id + "'");
+        }
+        if (category.isActive()) {
+            throw new ValidationException("Danh mục có ID '" + id + "' đang hoạt động, không cần khôi phục!");
+        }
+        category.setActive(true);
+        return categoryRepository.saveAll(categoryList);
+    }
+
     // Dành cho Admin: Lấy toàn bộ danh mục (kể cả inactive)
     public List<Category> getAllCategories() {
         List<Category> copies = new ArrayList<>();
