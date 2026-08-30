@@ -72,7 +72,7 @@ public class MovieRepository implements IMovieRepository {
                         double rating = Double.parseDouble(parts[6]);
                         long views = Long.parseLong(parts[7]);
                         long favouritesCount = Long.parseLong(parts[8]);
-                        boolean isActive = Boolean.parseBoolean(parts[9]);
+                        boolean isActive = Boolean.parseBoolean(parts[9].trim());
 
                         // Khởi tạo Movie bằng Constructor đầy đủ
 
