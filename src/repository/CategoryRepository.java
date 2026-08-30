@@ -64,7 +64,7 @@ public class CategoryRepository implements ICategoryRepository {
                         if (description.trim().isEmpty()) {
                             description = null; // Khôi phục null thay vì empty string
                         }
-                        boolean isActive = Boolean.parseBoolean(parts[3]);
+                        boolean isActive = Boolean.parseBoolean(parts[3].trim());
 
                         // Tạo đối tượng Category và set trạng thái Active
                         Category cat = new Category(id, name, description);
