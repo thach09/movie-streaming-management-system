@@ -1,12 +1,13 @@
 package repository;
 
-import model.Admin;
-import model.Customer;
-import model.User;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import model.Admin;
+import model.Customer;
+import model.User;
+import model.WatchProgress;
 
 public class UserRepository implements IUserRepository {
     private static final String FILE_PATH = "data/users.txt";
@@ -19,6 +20,19 @@ public class UserRepository implements IUserRepository {
             return ""; // Trả về chuỗi rỗng khi không có dữ liệu
         }
         return String.join(LIST_DELIMITER, list); // Nối chuỗi khi có dữ liệu
+    }
+
+    // Hàm chuyển List<WatchProgress> thành chuỗi "movieId:percent,movieId:percent"
+    private String joinProgressList(List<WatchProgress> list) {
+        if (list == null || list.isEmpty()) {
+            return "";
+        }
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < list.size(); i++) {
+            if (i > 0) sb.append(LIST_DELIMITER);
+            sb.append(list.get(i).getMovieId()).append(":").append(list.get(i).getPercent());
+        }
+        return sb.toString();
     }
 
     // Hàm lưu toàn bộ User xuống file
@@ -49,7 +63,8 @@ public class UserRepository implements IUserRepository {
                     // Nối 3 danh sách phim vào cuối chuỗi
                     line.append(DELIMITER).append(joinList(cus.getWatchlist()))
                         .append(DELIMITER).append(joinList(cus.getFavouriteList()))
-                        .append(DELIMITER).append(joinList(cus.getWatchHistory()));
+                        .append(DELIMITER).append(joinList(cus.getWatchHistory()))
+                        .append(DELIMITER).append(joinProgressList(cus.getContinueWatching()));
                 }
 
                 // Ghi chuỗi xuống file
@@ -76,6 +91,28 @@ public class UserRepository implements IUserRepository {
         return list;     
     }
 
+    // Hàm phụ trợ: biến chuỗi "M01:45,M03:80" thành List<WatchProgress>
+    private List<WatchProgress> parseProgressList(String data) {
+        List<WatchProgress> list = new ArrayList<>();
+        if (data == null || data.trim().isEmpty()) {
+            return list;
+        }
+        String[] items = data.split(LIST_DELIMITER);
+        for (String item : items) {
+            try {
+                String trimmed = item.trim();
+                int colonIdx = trimmed.indexOf(':');
+                if (colonIdx <= 0 || colonIdx >= trimmed.length() - 1) continue;
+                String movieId = trimmed.substring(0, colonIdx);
+                int percent = Integer.parseInt(trimmed.substring(colonIdx + 1));
+                list.add(new WatchProgress(movieId, percent));
+            } catch (Exception e) {
+                // Graceful degradation: bỏ qua phần tử lỗi
+            }
+        }
+        return list;
+    }
+
     // Hàm đọc dữ liệu từ file lên RAM
     public List<User> loadAll() {
         List<User> userList = new ArrayList<>();
@@ -99,7 +136,7 @@ public class UserRepository implements IUserRepository {
                         String fullName = parts[3];
                         String email = parts[4];
                         String role = parts[5];
-                        boolean isActive = Boolean.parseBoolean(parts[6]);
+                        boolean isActive = Boolean.parseBoolean(parts[6].trim());
 
                         User user = null;
 
@@ -107,12 +144,19 @@ public class UserRepository implements IUserRepository {
                         if (role.equals("ADMIN")) {
                             user = new Admin(id, username, password, fullName, email);
                         } else if (role.equals("CUSTOMER") && parts.length >= 10) {
-                            // Customer sẽ có 10 cột (3 cột danh sách)
+                            // Customer có tối thiểu 10 cột (3 danh sách), cột 11 (continueWatching) là tùy chọn
                             List<String> watchlist = parseList(parts[7]);
                             List<String> favouritelist = parseList(parts[8]);
                             List<String> watchHistorylist = parseList(parts[9]);
 
-                            user = new Customer(id, username, password, fullName, email, watchlist, favouritelist, watchHistorylist );
+                            Customer customer = new Customer(id, username, password, fullName, email, watchlist, favouritelist, watchHistorylist);
+
+                            // Tương thích ngược: chỉ đọc cột 11 nếu có
+                            if (parts.length >= 11) {
+                                customer.setContinueWatching(parseProgressList(parts[10]));
+                            }
+
+                            user = customer;
                     }
 
                     // Khởi tạo thành công sẽ thêm vào danh sách
