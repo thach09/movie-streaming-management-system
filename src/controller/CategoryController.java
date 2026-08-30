@@ -35,14 +35,7 @@ public class CategoryController {
                 throw new ValidationException("Tên danh mục '" + name + "' đã tồn tại!");
             }
         }
-        
-        // ID và Mô tả không được trùng với Tên danh mục
-        if (id.equalsIgnoreCase(name)) {
-            throw new ValidationException("Mã danh mục không được trùng với tên danh mục!");
-        }
-        if (description != null && description.equalsIgnoreCase(name)) {
-            throw new ValidationException("Mô tả không được trùng với tên danh mục!");
-        }
+
 
         Category newCategory = new Category(id, name, description);
         categoryList.add(newCategory);
@@ -61,14 +54,7 @@ public class CategoryController {
                 throw new ValidationException("Tên danh mục '" + newName + "' đã tồn tại ở danh mục khác!");
             }
         }
-        
-        // Tên và Mô tả không được trùng với mã danh mục / tên danh mục
-        if (category.getId().equalsIgnoreCase(newName)) {
-            throw new ValidationException("Tên danh mục không được trùng với mã danh mục!");
-        }
-        if (newDescription != null && newDescription.equalsIgnoreCase(newName)) {
-            throw new ValidationException("Mô tả không được trùng với tên danh mục!");
-        }
+
 
         // 1. Tạo bản sao tạm để test Validation
         Category temp = new Category(category);
