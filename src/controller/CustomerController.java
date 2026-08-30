@@ -2,10 +2,12 @@ package controller;
 
 import model.Customer;
 import model.Movie;
+import model.WatchProgress;
 import model.WatchlistAction;
 import utils.CustomStack;
 import utils.ValidationException;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class CustomerController {
@@ -253,6 +255,92 @@ public class CustomerController {
     public java.util.List<String> getWatchHistory(String customerId) throws ValidationException {
         Customer customer = userController.findActiveCustomerReferenceForController(customerId);
         return customer.getWatchHistory();
+    }
+
+    // ===================== CONTINUE WATCHING =====================
+
+    /**
+     * Cập nhật tiến độ xem phim.
+     * percent >= 100: coi là xem xong -> xóa khỏi continueWatching (nếu có),
+     *   đồng thời ghi nhận vào Watch History + tăng views (gọi lại addToWatchHistory
+     *   nội bộ để tái sử dụng logic đã có).
+     * 0 < percent < 100: thêm mới hoặc cập nhật entry tương ứng trong continueWatching.
+     * percent <= 0: xóa entry nếu có (coi như reset), không làm gì thêm.
+     */
+    public boolean updateWatchProgress(String customerId, String movieId, int percent) throws ValidationException {
+        if (percent < 0 || percent > 100) {
+            throw new ValidationException("Tiến độ xem phải nằm trong khoảng 0-100!");
+        }
+        String canonicalId = resolveActiveMovieId(movieId);
+        Customer customer = userController.findActiveCustomerReferenceForController(customerId);
+        List<WatchProgress> progressList = customer.getContinueWatching();
+
+        // Xóa entry cũ nếu có (dù percent là bao nhiêu, luôn xóa trước rồi quyết định thêm lại hay không)
+        List<WatchProgress> filtered = new ArrayList<>();
+        for (WatchProgress p : progressList) {
+            if (!p.getMovieId().equalsIgnoreCase(canonicalId)) {
+                filtered.add(p);
+            }
+        }
+        progressList = filtered;
+
+        if (percent >= 100) {
+            customer.setContinueWatching(progressList);
+            userController.persistUserChanges();
+            return addToWatchHistory(customerId, canonicalId); // Tái sử dụng logic đã có
+        } else if (percent > 0) {
+            progressList.add(new WatchProgress(canonicalId, percent));
+        }
+        // percent <= 0: đã xóa entry ở trên, không thêm lại
+
+        customer.setContinueWatching(progressList);
+        return userController.persistUserChanges();
+    }
+
+    /** Lấy danh sách Continue Watching của Customer (bản sao). */
+    public List<WatchProgress> getContinueWatching(String customerId) throws ValidationException {
+        Customer customer = userController.findActiveCustomerReferenceForController(customerId);
+        return customer.getContinueWatching();
+    }
+
+    /**
+     * Lấy N phim xem gần đây nhất (distinct, không trùng), từ mới nhất đến cũ nhất.
+     * Dựa trên thứ tự xuất hiện trong watchHistory (phần tử thêm sau = xem sau).
+     */
+    public List<Movie> getRecentlyWatched(String customerId, int limit) throws ValidationException {
+        Customer customer = userController.findActiveCustomerReferenceForController(customerId);
+        List<String> history = customer.getWatchHistory();
+        List<Movie> result = new ArrayList<>();
+        List<String> seen = new ArrayList<>();
+
+        for (int i = history.size() - 1; i >= 0 && result.size() < limit; i--) {
+            String mid = history.get(i);
+            boolean alreadySeen = false;
+            for (String s : seen) {
+                if (s.equalsIgnoreCase(mid)) {
+                    alreadySeen = true;
+                    break;
+                }
+            }
+            if (alreadySeen) continue;
+            seen.add(mid);
+            Movie movie = movieController.findById(mid);
+            if (movie != null) result.add(movie);
+        }
+        return result;
+    }
+
+    // ===================== REPORT EXPORT =====================
+
+    /**
+     * Xuất báo cáo lịch sử xem ra file CSV.
+     * Truyền movieController::findById làm resolver cho ReportExporter.
+     */
+    public boolean exportWatchHistoryReport(String customerId, String filePath) throws ValidationException {
+        Customer customer = userController.findActiveCustomerReferenceForController(customerId);
+        List<String> history = customer.getWatchHistory();
+        return utils.ReportExporter.exportWatchHistoryReport(
+                history, movieController::findById, filePath);
     }
 
     // ===================== PRIVATE HELPERS =====================
