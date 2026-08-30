@@ -214,6 +214,14 @@ public class MovieController {
         return utils.SearchUtils.searchByCategoryId(getActiveMovies(), categoryId);
     }
 
+    // --- LỌC NÂNG CAO (GIAI ĐOẠN 2 MỞ RỘNG) ---
+
+    public List<Movie> advancedFilter(String categoryId, Integer minYear, Integer maxYear,
+            Double minRating, String director, String actor) {
+        return utils.FilterUtils.advancedFilter(getActiveMovies(), categoryId,
+                minYear, maxYear, minRating, director, actor);
+    }
+
     // --- THỐNG KÊ & XẾP HẠNG (GIAI ĐOẠN 4) ---
 
     /**
