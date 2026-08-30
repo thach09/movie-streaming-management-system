@@ -8,6 +8,7 @@ public class Customer extends User {
     private List<String> watchlist;
     private List<String> favouriteList;
     private List<String> watchHistory;
+    private List<WatchProgress> continueWatching;
 
     // Constructor mặc định
     public Customer () {
@@ -20,6 +21,7 @@ public class Customer extends User {
         this.watchlist = new ArrayList<>();
         this.favouriteList = new ArrayList<>();
         this.watchHistory = new ArrayList<>();
+        this.continueWatching = new ArrayList<>();
     }
 
     // Constructor đầy đủ tham số
@@ -29,6 +31,7 @@ public class Customer extends User {
         this.watchlist = (watchlist != null) ? new ArrayList<>(watchlist) : new ArrayList<>();
         this.favouriteList = (favouriteList != null) ? new ArrayList<>(favouriteList) : new ArrayList<>();
         this.watchHistory = (watchHistory != null) ? new ArrayList<>(watchHistory) : new ArrayList<>();
+        this.continueWatching = new ArrayList<>();
     }
 
     // Copy Constructor (deep copy 3 danh sách để không chia sẻ reference)
@@ -37,6 +40,10 @@ public class Customer extends User {
         this.watchlist = new ArrayList<>(source.watchlist);
         this.favouriteList = new ArrayList<>(source.favouriteList);
         this.watchHistory = new ArrayList<>(source.watchHistory);
+        this.continueWatching = new ArrayList<>();
+        for (WatchProgress wp : source.continueWatching) {
+            this.continueWatching.add(new WatchProgress(wp));
+        }
     }
 
     // === Getters & Setters ===
@@ -59,10 +66,28 @@ public class Customer extends User {
     public void setWatchHistory(List<String> watchHistory) {
         this.watchHistory = (watchHistory != null) ? new ArrayList<>(watchHistory) : new ArrayList<>();
     }
+
+    public List<WatchProgress> getContinueWatching() {
+        List<WatchProgress> copy = new ArrayList<>();
+        for (WatchProgress wp : continueWatching) {
+            copy.add(new WatchProgress(wp));
+        }
+        return copy;
+    }
+
+    public void setContinueWatching(List<WatchProgress> continueWatching) {
+        this.continueWatching = new ArrayList<>();
+        if (continueWatching != null) {
+            for (WatchProgress wp : continueWatching) {
+                this.continueWatching.add(new WatchProgress(wp));
+            }
+        }
+    }
+
     @Override
     public String toString() {
-        return String.format("Customer [%s, Watchlist=%d movies, Favorites=%d movies, History=%d movies]",
-                super.toString(), watchlist.size(), favouriteList.size(), watchHistory.size());
+        return String.format("Customer [%s, Watchlist=%d movies, Favorites=%d movies, History=%d movies, ContinueWatching=%d]",
+                super.toString(), watchlist.size(), favouriteList.size(), watchHistory.size(), continueWatching.size());
     }
    
 }
