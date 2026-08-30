@@ -49,5 +49,21 @@ public class InputValidator {
             }
         }
     }
+
+    // 4. Dọn dẹp input tìm kiếm/lọc: bỏ ký tự nháy đơn ' thừa + trim.
+    // CHỈ dùng cho input tìm kiếm/lọc, KHÔNG dùng cho input tạo/sửa dữ liệu.
+    public static String sanitizeSearchInput(String rawInput) {
+        if (rawInput == null) return null;
+        String s = rawInput.trim();
+        // Chỉ bỏ dấu nháy đơn THỪA ở ĐẦU/CUỐI (do lỡ tay gõ),
+        // giữ nguyên dấu nháy bên trong (vd: "Mr. Bean's Holiday").
+        while (s.startsWith("'")) {
+            s = s.substring(1);
+        }
+        while (s.endsWith("'")) {
+            s = s.substring(0, s.length() - 1);
+        }
+        return s.trim();
+    }
  
 }
