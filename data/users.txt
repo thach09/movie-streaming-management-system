@@ -1,5 +1,5 @@
 admin123|admin|123456|System Admin|admin@gmail.com|ADMIN|true
-thach09|thietthach09|porsche911|Đỗ Thiết Thạch|thietthachdo@gmail.com|CUSTOMER|true|M27,M33|M03,M01,M02|M48,M36,M08,M49|M36:45,M08:0,M48:33,M49:0
+thach09|thietthach09|thach123|Đỗ Thiết Thạch|thietthachdo@gmail.com|CUSTOMER|true|M27,M33|M03,M01,M02|M48,M36,M08,M49|M36:45,M08:0,M48:33,M49:0
 cr7|cristiano07|siuuu123|Cristiano Ronaldo|cr7@gmail.com|CUSTOMER|true||||
 leo10|messi10|goat10|Lionel Messi|messi10@gmail.com|CUSTOMER|true|M01,M60,M43,M33,M36|M35|M46,M01,M01,M43,M26|M46:68,M01:79
 mtp94|sontungmtp|sky123|Nguyễn Thanh Tùng|mtp@gmail.com|CUSTOMER|true||||

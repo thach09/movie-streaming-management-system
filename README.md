@@ -231,7 +231,7 @@ java -cp out Main
 | Vai trò | Username | Password |
 |:---|:---|:---|
 | **Admin** | `admin` | `admin123` |
-| **Customer** | `thach09` | `thach123` |
+| **Customer** | `thiettthach09` | `thach123` |
 
 ---
 
