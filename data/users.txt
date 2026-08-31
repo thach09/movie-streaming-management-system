@@ -1,14 +1,11 @@
 admin123|admin|123456|System Admin|admin@gmail.com|ADMIN|true
-thach09|thietthach09|porsche911|Đỗ Thiết Thạch|thietthachdo@gmail.com|CUSTOMER|true|||
-cr7|cristiano07|siuuu123|Cristiano Ronaldo|cr7@gmail.com|CUSTOMER|true|||
-leo10|messi10|goat10|Lionel Messi|messi10@gmail.com|CUSTOMER|true|||
-mtp94|sontungmtp|sky123|Nguyễn Thanh Tùng|mtp@gmail.com|CUSTOMER|true|||
-j97|jack97|domdom123|Trịnh Trần Phương Tuấn|jack97@gmail.com|CUSTOMER|true|||
-ney92|neymarjr|njr123|Neymar Junior|neymarjr@gmail.com|CUSTOMER|true|||
-charlie01|charlieputh|puth123|Charlie Puth|charlieputh@gmail.com|CUSTOMER|true|||
-th07|tomholland|spidey123|Tom Holland|tomholland@gmail.com|CUSTOMER|true|||
-taylor89|taylorswift13|tswift13|Taylor Swift|taylorswift13@gmail.com|CUSTOMER|true|||
-hieu2hai|hieut2|hieuthuhai123|Trần Minh Hiếu|hieuthuhai@gmail.com|CUSTOMER|true|||
-
-
- 
+thach09|thietthach09|porsche911|Đỗ Thiết Thạch|thietthachdo@gmail.com|CUSTOMER|true|M27,M33|M03,M01,M02|M48,M36,M08,M49|M36:45,M08:0,M48:33,M49:0
+cr7|cristiano07|siuuu123|Cristiano Ronaldo|cr7@gmail.com|CUSTOMER|true||||
+leo10|messi10|goat10|Lionel Messi|messi10@gmail.com|CUSTOMER|true|M01,M60,M43,M33,M36|M35|M46,M01,M01,M43,M26|M46:68,M01:79
+mtp94|sontungmtp|sky123|Nguyễn Thanh Tùng|mtp@gmail.com|CUSTOMER|true||||
+j97|jack97|domdom123|Trịnh Trần Phương Tuấn|jack97@gmail.com|CUSTOMER|true||||
+ney92|neymarjr|njr123|Neymar Junior|neymarjr@gmail.com|CUSTOMER|true||||
+charlie01|charlieputh|puth123|Charlie Puth|charlieputh@gmail.com|CUSTOMER|true||||
+th07|tomholland|spidey123|Tom Holland|tomholland@gmail.com|CUSTOMER|true||||
+taylor89|taylorswift13|tswift13|Taylor Swift|taylorswift13@gmail.com|CUSTOMER|true||||
+hieu2hai|hieut2|hieuthuhai123|Trần Minh Hiếu|hieuthuhai@gmail.com|CUSTOMER|true||||
