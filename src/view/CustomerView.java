@@ -127,7 +127,7 @@ public class CustomerView {
 
     private void promptViewDetail() {
         System.out.print("Nhập mã phim để xem chi tiết (Enter để bỏ qua): ");
-        String id = scanner.nextLine().trim();
+        String id = scanner.nextLine().trim().replace("'", "");
         if (!id.isEmpty()) {
             showMovieDetail(id);
         }
@@ -155,6 +155,20 @@ public class CustomerView {
         System.out.printf("  Rating     : %.1f\n", movie.getRating());
         System.out.println("  Lượt xem   : " + movie.getViews());
         System.out.println("  Yêu thích  : " + movie.getFavouritesCount());
+
+        System.out.print("\nBạn có muốn xem phim này không? (Y/N): ");
+        String answer = scanner.nextLine().trim();
+        if (answer.equalsIgnoreCase("Y")) {
+            try {
+                if (customerController.updateWatchProgress(customerId, id, 0)) {
+                    System.out.println("Đã bắt đầu xem — phim đã được thêm vào 'Xem tiếp'.");
+                } else {
+                    System.out.println("Lỗi ghi file!");
+                }
+            } catch (ValidationException e) {
+                System.out.println(e.getMessage());
+            }
+        }
     }
 
     // ===================== BROWSE BY CATEGORY =====================
@@ -165,11 +179,8 @@ public class CustomerView {
             System.out.println("(Chưa có thể loại nào)");
             return;
         }
-        System.out.println("\n" + TextUI.header("CÁC THỂ LOẠI"));
-        for (Category cat : categories) {
-            System.out.println("  [" + cat.getId() + "] " + cat.getName());
-        }
-        String catId = InputValidator.readString(scanner, "Nhập mã thể loại để xem phim: ");
+        String catId = TextUI.selectCategoryByNumber(categories, scanner);
+        if (catId == null) return;
         List<Movie> movies = movieController.searchMoviesByCategory(catId);
         printMovieResults(movies);
     }
@@ -188,19 +199,23 @@ public class CustomerView {
         switch (choice) {
             case 1:
                 results = movieController.searchMoviesByTitle(
-                        InputValidator.readString(scanner, "Nhập từ khóa tên phim: "));
+                        InputValidator.sanitizeSearchInput(
+                                InputValidator.readString(scanner, "Nhập từ khóa tên phim: ")));
                 break;
             case 2:
                 results = movieController.searchMoviesByActor(
-                        InputValidator.readString(scanner, "Nhập từ khóa diễn viên: "));
+                        InputValidator.sanitizeSearchInput(
+                                InputValidator.readString(scanner, "Nhập từ khóa diễn viên: ")));
                 break;
             case 3:
                 results = movieController.searchMoviesByDirector(
-                        InputValidator.readString(scanner, "Nhập từ khóa đạo diễn: "));
+                        InputValidator.sanitizeSearchInput(
+                                InputValidator.readString(scanner, "Nhập từ khóa đạo diễn: ")));
                 break;
             case 4:
-                results = movieController.searchMoviesByCategory(
-                        InputValidator.readString(scanner, "Nhập mã thể loại: "));
+                String catId = TextUI.selectCategoryByNumber(categoryController.getActiveCategories(), scanner);
+                if (catId == null) return;
+                results = movieController.searchMoviesByCategory(catId);
                 break;
             default: return;
         }
@@ -460,10 +475,13 @@ public class CustomerView {
             }
 
             System.out.println("\n1. Cập nhật tiến độ xem");
+            System.out.println("2. Xóa khỏi danh sách xem dở");
             System.out.println("0. Quay lại");
-            int action = InputValidator.readInt(scanner, "Chọn: ", 0, 1);
+            int action = InputValidator.readInt(scanner, "Chọn: ", 0, 2);
             if (action == 1) {
                 updateWatchProgress();
+            } else if (action == 2) {
+                removeFromContinueWatchingView();
             }
         } catch (ValidationException e) {
             System.out.println(e.getMessage());
@@ -477,11 +495,22 @@ public class CustomerView {
             if (customerController.updateWatchProgress(customerId, movieId, percent)) {
                 if (percent >= 100) {
                     System.out.println("Đã xem xong phim '" + movieId + "'! Ghi nhận vào lịch sử.");
-                } else if (percent > 0) {
-                    System.out.println("Đã cập nhật tiến độ xem phim '" + movieId + "': " + percent + "%");
                 } else {
-                    System.out.println("Đã xóa tiến độ xem phim '" + movieId + "'.");
+                    System.out.println("Đã ghi nhận tiến độ xem phim '" + movieId + "': " + percent + "%");
                 }
+            } else {
+                System.out.println("Lỗi ghi file!");
+            }
+        } catch (ValidationException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void removeFromContinueWatchingView() {
+        try {
+            String movieId = InputValidator.readString(scanner, "Nhập mã phim cần xóa khỏi danh sách xem dở: ");
+            if (customerController.removeFromContinueWatching(customerId, movieId)) {
+                System.out.println("Đã xóa phim '" + movieId + "' khỏi danh sách xem dở.");
             } else {
                 System.out.println("Lỗi ghi file!");
             }
@@ -527,13 +556,11 @@ public class CustomerView {
     // ===================== ADVANCED FILTER =====================
 
     private void advancedFilterMenu() {
-        System.out.println("\n" + TextUI.header("LỌC NÂNG CAO (Enter để bỏ qua)"));
+        System.out.println("\n" + TextUI.header("LỌC NÂNG CAO"));
 
-        System.out.print("Mã thể loại: ");
-        String categoryId = scanner.nextLine().trim();
-        if (categoryId.isEmpty()) categoryId = null;
+        String categoryId = TextUI.selectCategoryByNumber(categoryController.getActiveCategories(), scanner, "Bỏ qua (không lọc theo thể loại)");
 
-        System.out.print("Năm phát hành từ: ");
+        System.out.print("Năm phát hành từ (Enter để bỏ qua): ");
         String minYearStr = scanner.nextLine().trim();
         Integer minYear = null;
         if (!minYearStr.isEmpty()) {
@@ -541,7 +568,7 @@ public class CustomerView {
             catch (NumberFormatException e) { System.out.println("(Bỏ qua — không phải số)"); }
         }
 
-        System.out.print("Năm phát hành đến: ");
+        System.out.print("Năm phát hành đến (Enter để bỏ qua): ");
         String maxYearStr = scanner.nextLine().trim();
         Integer maxYear = null;
         if (!maxYearStr.isEmpty()) {
@@ -549,7 +576,7 @@ public class CustomerView {
             catch (NumberFormatException e) { System.out.println("(Bỏ qua — không phải số)"); }
         }
 
-        System.out.print("Rating tối thiểu (0.0-10.0): ");
+        System.out.print("Rating tối thiểu (Enter để bỏ qua): ");
         String minRatingStr = scanner.nextLine().trim();
         Double minRating = null;
         if (!minRatingStr.isEmpty()) {
@@ -557,13 +584,13 @@ public class CustomerView {
             catch (NumberFormatException e) { System.out.println("(Bỏ qua — không phải số)"); }
         }
 
-        System.out.print("Đạo diễn (từ khóa): ");
-        String director = scanner.nextLine().trim();
-        if (director.isEmpty()) director = null;
+        System.out.print("Đạo diễn từ khóa (Enter để bỏ qua): ");
+        String director = InputValidator.sanitizeSearchInput(scanner.nextLine());
+        if (director == null || director.isEmpty()) director = null;
 
-        System.out.print("Diễn viên (từ khóa): ");
-        String actor = scanner.nextLine().trim();
-        if (actor.isEmpty()) actor = null;
+        System.out.print("Diễn viên từ khóa (Enter để bỏ qua): ");
+        String actor = InputValidator.sanitizeSearchInput(scanner.nextLine());
+        if (actor == null || actor.isEmpty()) actor = null;
 
         List<Movie> results = movieController.advancedFilter(categoryId, minYear, maxYear, minRating, director, actor);
         printMovieResults(results);
