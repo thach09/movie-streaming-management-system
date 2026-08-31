@@ -11,6 +11,7 @@ import utils.InputValidator;
 import utils.TextUI;
 import utils.ValidationException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -41,9 +42,10 @@ public class AdminView {
                     "  4. Xem Thống kê hệ thống",
                     "  5. Xem Auto Ranking (Xếp hạng)",
                     "  6. Xem Trending Categories",
+                    "  7. Khôi phục dữ liệu",
                     "  0. Đăng xuất"
             }));
-            choice = InputValidator.readInt(scanner, "Chọn chức năng: ", 0, 6);
+            choice = InputValidator.readInt(scanner, "Chọn chức năng: ", 0, 7);
 
             switch (choice) {
                 case 1: categoryMenu(); break;
@@ -52,6 +54,7 @@ public class AdminView {
                 case 4: viewStatistics(); break;
                 case 5: viewAutoRanking(); break;
                 case 6: viewTrendingCategories(); break;
+                case 7: restoreMenu(); break;
                 case 0: System.out.println("Đã đăng xuất."); break;
             }
         } while (choice != 0);
@@ -178,12 +181,11 @@ public class AdminView {
         try {
             String id = InputValidator.readString(scanner, "Nhập mã phim: ");
             String title = InputValidator.readString(scanner, "Nhập tên phim: ");
-            List<Category> cats = categoryController.getActiveCategories();
-            System.out.println("Danh sách thể loại hiện có:");
-            for (Category c : cats) {
-                System.out.println("  " + c.getId() + " - " + c.getName());
+            String categoryId = TextUI.selectCategoryByNumber(categoryController.getActiveCategories(), scanner);
+            if (categoryId == null) {
+                System.out.println("Đã hủy thêm phim.");
+                return;
             }
-            String categoryId = InputValidator.readString(scanner, "Nhập mã thể loại: ");
             String director = InputValidator.readString(scanner, "Nhập đạo diễn: ");
             String actors = InputValidator.readString(scanner, "Nhập diễn viên: ");
             int year = InputValidator.readInt(scanner, "Nhập năm phát hành: ", 1888, java.time.Year.now().getValue());
@@ -208,12 +210,18 @@ public class AdminView {
             }
             System.out.println("Thông tin hiện tại: " + existing);
             String title = InputValidator.readString(scanner, "Nhập tên mới: ");
-            List<Category> cats = categoryController.getActiveCategories();
-            System.out.println("Danh sách thể loại hiện có:");
-            for (Category c : cats) {
-                System.out.println("  " + c.getId() + " - " + c.getName());
+
+            Category currentCategory = categoryController.findById(existing.getCategoryId());
+            String currentCategoryName = (currentCategory != null) ? currentCategory.getName() : existing.getCategoryId();
+            System.out.println("Thể loại hiện tại: " + currentCategoryName);
+
+            String categoryId = TextUI.selectCategoryByNumber(
+                    categoryController.getActiveCategories(), scanner,
+                    "Giữ nguyên: " + currentCategoryName);
+            if (categoryId == null) {
+                categoryId = existing.getCategoryId();
             }
-            String categoryId = InputValidator.readString(scanner, "Nhập mã thể loại mới: ");
+
             String director = InputValidator.readString(scanner, "Nhập đạo diễn mới: ");
             String actors = InputValidator.readString(scanner, "Nhập diễn viên mới: ");
             int year = InputValidator.readInt(scanner, "Nhập năm phát hành mới: ", 1888, java.time.Year.now().getValue());
@@ -256,6 +264,86 @@ public class AdminView {
         }
     }
 
+    // ===================== RESTORE =====================
+
+    private void restoreMenu() {
+        int choice;
+        do {
+            System.out.println("\n" + TextUI.header("KHÔI PHỤC DỮ LIỆU"));
+            System.out.println("1. Khôi phục Thể loại");
+            System.out.println("2. Khôi phục Phim");
+            System.out.println("0. Quay lại");
+            choice = InputValidator.readInt(scanner, "Chọn: ", 0, 2);
+            switch (choice) {
+                case 1: restoreCategoryMenu(); break;
+                case 2: restoreMovieMenu(); break;
+            }
+        } while (choice != 0);
+    }
+
+    private void restoreCategoryMenu() {
+        List<Category> inactive = new ArrayList<>();
+        for (Category c : categoryController.getAllCategories()) {
+            if (!c.isActive()) {
+                inactive.add(c);
+            }
+        }
+        if (inactive.isEmpty()) {
+            System.out.println("(Không có thể loại nào cần khôi phục)");
+            return;
+        }
+        System.out.println("\n" + TextUI.header("DANH SÁCH THỂ LOẠI ĐÃ XÓA"));
+        for (int i = 0; i < inactive.size(); i++) {
+            System.out.println("  " + (i + 1) + ". " + inactive.get(i).getId() + " - " + inactive.get(i).getName());
+        }
+        System.out.println("  0. Quay lại");
+        int choice = InputValidator.readInt(scanner, "Chọn thể loại cần khôi phục: ", 0, inactive.size());
+        if (choice == 0) return;
+        String id = inactive.get(choice - 1).getId();
+        try {
+            if (categoryController.restoreCategory(id)) {
+                System.out.println("Đã khôi phục thể loại '" + id + "' thành công!");
+            } else {
+                System.out.println("Lỗi ghi file!");
+            }
+        } catch (ValidationException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
+    private void restoreMovieMenu() {
+        List<Movie> inactive = new ArrayList<>();
+        for (Movie m : movieController.getAllMovies()) {
+            if (!m.isActive()) {
+                inactive.add(m);
+            }
+        }
+        if (inactive.isEmpty()) {
+            System.out.println("(Không có phim nào cần khôi phục)");
+            return;
+        }
+        System.out.println("\n" + TextUI.header("DANH SÁCH PHIM ĐÃ XÓA"));
+        for (int i = 0; i < inactive.size(); i++) {
+            if (i > 0) {
+                System.out.println();
+            }
+            System.out.println("  " + (i + 1) + ". " + formatMovie(inactive.get(i)));
+        }
+        System.out.println("\n  0. Quay lại");
+        int choice = InputValidator.readInt(scanner, "Chọn phim cần khôi phục: ", 0, inactive.size());
+        if (choice == 0) return;
+        String id = inactive.get(choice - 1).getId();
+        try {
+            if (movieController.restoreMovie(id)) {
+                System.out.println("Đã khôi phục phim '" + id + "' thành công!");
+            } else {
+                System.out.println("Lỗi ghi file!");
+            }
+        } catch (ValidationException e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
     // ===================== SEARCH MOVIES =====================
 
     private void searchMovieMenu() {
@@ -269,19 +357,23 @@ public class AdminView {
         List<Movie> results;
         switch (choice) {
             case 1:
-                String title = InputValidator.readString(scanner, "Nhập từ khóa tên phim: ");
+                String title = InputValidator.sanitizeSearchInput(
+                        InputValidator.readString(scanner, "Nhập từ khóa tên phim: "));
                 results = movieController.searchMoviesByTitle(title);
                 break;
             case 2:
-                String actor = InputValidator.readString(scanner, "Nhập từ khóa diễn viên: ");
+                String actor = InputValidator.sanitizeSearchInput(
+                        InputValidator.readString(scanner, "Nhập từ khóa diễn viên: "));
                 results = movieController.searchMoviesByActor(actor);
                 break;
             case 3:
-                String director = InputValidator.readString(scanner, "Nhập từ khóa đạo diễn: ");
+                String director = InputValidator.sanitizeSearchInput(
+                        InputValidator.readString(scanner, "Nhập từ khóa đạo diễn: "));
                 results = movieController.searchMoviesByDirector(director);
                 break;
             case 4:
-                String catId = InputValidator.readString(scanner, "Nhập mã thể loại: ");
+                String catId = TextUI.selectCategoryByNumber(categoryController.getActiveCategories(), scanner);
+                if (catId == null) return;
                 results = movieController.searchMoviesByCategory(catId);
                 break;
             default:
@@ -319,13 +411,11 @@ public class AdminView {
     // ===================== ADVANCED FILTER =====================
 
     private void advancedFilterMenu() {
-        System.out.println("\n" + TextUI.header("LỌC NÂNG CAO (Enter để bỏ qua)"));
+        System.out.println("\n" + TextUI.header("LỌC NÂNG CAO"));
 
-        System.out.print("Mã thể loại: ");
-        String categoryId = scanner.nextLine().trim();
-        if (categoryId.isEmpty()) categoryId = null;
+        String categoryId = TextUI.selectCategoryByNumber(categoryController.getActiveCategories(), scanner, "Bỏ qua (không lọc theo thể loại)");
 
-        System.out.print("Năm phát hành từ: ");
+        System.out.print("Năm phát hành từ (Enter để bỏ qua): ");
         String minYearStr = scanner.nextLine().trim();
         Integer minYear = null;
         if (!minYearStr.isEmpty()) {
@@ -333,7 +423,7 @@ public class AdminView {
             catch (NumberFormatException e) { System.out.println("(Bỏ qua — không phải số)"); }
         }
 
-        System.out.print("Năm phát hành đến: ");
+        System.out.print("Năm phát hành đến (Enter để bỏ qua): ");
         String maxYearStr = scanner.nextLine().trim();
         Integer maxYear = null;
         if (!maxYearStr.isEmpty()) {
@@ -341,7 +431,7 @@ public class AdminView {
             catch (NumberFormatException e) { System.out.println("(Bỏ qua — không phải số)"); }
         }
 
-        System.out.print("Rating tối thiểu (0.0-10.0): ");
+        System.out.print("Rating tối thiểu (Enter để bỏ qua): ");
         String minRatingStr = scanner.nextLine().trim();
         Double minRating = null;
         if (!minRatingStr.isEmpty()) {
@@ -349,13 +439,13 @@ public class AdminView {
             catch (NumberFormatException e) { System.out.println("(Bỏ qua — không phải số)"); }
         }
 
-        System.out.print("Đạo diễn (từ khóa): ");
-        String director = scanner.nextLine().trim();
-        if (director.isEmpty()) director = null;
+        System.out.print("Đạo diễn từ khóa (Enter để bỏ qua): ");
+        String director = InputValidator.sanitizeSearchInput(scanner.nextLine());
+        if (director == null || director.isEmpty()) director = null;
 
-        System.out.print("Diễn viên (từ khóa): ");
-        String actor = scanner.nextLine().trim();
-        if (actor.isEmpty()) actor = null;
+        System.out.print("Diễn viên từ khóa (Enter để bỏ qua): ");
+        String actor = InputValidator.sanitizeSearchInput(scanner.nextLine());
+        if (actor == null || actor.isEmpty()) actor = null;
 
         List<Movie> results = movieController.advancedFilter(categoryId, minYear, maxYear, minRating, director, actor);
         printMovieResults(results);
