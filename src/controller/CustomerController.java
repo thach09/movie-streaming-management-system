@@ -304,6 +304,30 @@ public class CustomerController {
     }
 
     /**
+     * Xóa 1 phim đang xem dở khỏi Continue Watching (không cần đạt 100%, không ghi vào Watch History).
+     */
+    public boolean removeFromContinueWatching(String customerId, String movieId) throws ValidationException {
+        String canonicalId = resolveMovieId(movieId); // Cho phép xóa cả khi phim đã bị gỡ (isActive=false)
+        Customer customer = userController.findActiveCustomerReferenceForController(customerId);
+        List<WatchProgress> progressList = customer.getContinueWatching();
+
+        List<WatchProgress> filtered = new ArrayList<>();
+        boolean found = false;
+        for (WatchProgress p : progressList) {
+            if (p.getMovieId().equalsIgnoreCase(canonicalId)) {
+                found = true;
+            } else {
+                filtered.add(p);
+            }
+        }
+        if (!found) {
+            throw new ValidationException("Phim '" + canonicalId + "' không có trong danh sách đang xem dở!");
+        }
+        customer.setContinueWatching(filtered);
+        return userController.persistUserChanges();
+    }
+
+    /**
      * Lấy N phim xem gần đây nhất (distinct, không trùng), từ mới nhất đến cũ nhất.
      * Dựa trên thứ tự xuất hiện trong watchHistory (phần tử thêm sau = xem sau).
      */
